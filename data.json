@@ -1,0 +1,48 @@
+{
+  "reportDate": "2026-11-24",
+  "days": [
+    { "date": "11.20", "total": 10, "tracked": 10, "untracked": 0, "draft": 0, "canceled": 0 },
+    { "date": "11.21", "total": 22, "tracked": 22, "untracked": 0, "draft": 0, "canceled": 0 },
+    { "date": "11.22", "total": 55, "tracked": 54, "untracked": 0, "draft": 0, "canceled": 1 },
+    { "date": "11.23", "total": 113, "tracked": 107, "untracked": 6, "draft": 0, "canceled": 0 },
+    { "date": "11.24", "total": 14, "tracked": 0, "untracked": 14, "draft": 0, "canceled": 0 }
+  ],
+  "balance": {
+    "currency": "MXN",
+    "current": 12726,
+    "needRecharge": false,
+    "note": "余额充足（11.24 快照）",
+    "deductions": [
+      { "date": "11.19", "amount": 160 },
+      { "date": "11.20", "amount": 496 },
+      { "date": "11.21", "amount": 204 },
+      { "date": "11.22", "amount": 212 },
+      { "date": "11.23", "amount": 40 },
+      { "date": "11.24", "amount": 2618 }
+    ]
+  },
+  "rent": {
+    "startDate": "11.26",
+    "planLabel": "60天免租方案 · 合计仓租",
+    "totalCost": 0,
+    "status": "pending",
+    "statusText": "已争取60天免租期，从11.26开始启动",
+    "timeline": [
+      { "text": "11.7 起租（原按45天免租测算合计4536.14）", "active": false },
+      { "text": "已争取60天免租期", "active": false },
+      { "text": "11.26 起按60天免租启动（合计仓租暂为0）", "active": true }
+    ]
+  },
+  "history": [
+    { "date": "2026-11-24", "total": 214, "tracked": 193, "untracked": 20, "draft": 0, "canceled": 1, "balance": 12726, "spent": 3730 },
+    { "date": "2026-11-23", "total": 200, "tracked": 193, "untracked": 6, "draft": 0, "canceled": 1, "balance": 4588, "spent": 1112 },
+    { "date": "2026-11-22", "total": 87, "tracked": 86, "untracked": 0, "draft": 0, "canceled": 1, "balance": 4588, "spent": 1072 },
+    { "date": "2026-11-21", "total": 32, "tracked": 32, "untracked": 0, "draft": 0, "canceled": 0, "balance": 4588, "spent": 860 },
+    { "date": "2026-11-20", "total": 10, "tracked": 10, "untracked": 0, "draft": 0, "canceled": 0, "balance": 4588, "spent": 656 }
+  ],
+  "_meta": {
+    "source": "feishu_bitable",
+    "synced_at": "2026-11-24",
+    "note": "初始 data.json；GitHub Actions 定时覆盖更新"
+  }
+}

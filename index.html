@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>万国一件代发 · 运营日报</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #F7F8FA;
+    color: #1F2329;
+    padding: 20px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  header {
+    background: linear-gradient(135deg, #185FA5 0%, #0F6E56 100%);
+    border-radius: 14px;
+    padding: 16px 20px;
+    color: #fff;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header p { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+  .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: #fff; color: #185FA5; }
+  .btn-ghost {
+    background: rgba(255,255,255,0.16);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.35);
+  }
+  .btn-danger-soft {
+    background: #FCEBEB;
+    color: #A32D2D;
+    border: 1px solid #F09595;
+  }
+  .btn-blue {
+    background: #185FA5;
+    color: #fff;
+  }
+  .btn-gray {
+    background: #F1EFE8;
+    color: #444441;
+    border: 1px solid #E8EAED;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ===== 录入表单 ===== */
+  .panel {
+    display: none;
+    background: #fff;
+    border-radius: 14px;
+    border: 2px solid #85B7EB;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .panel.show { display: block; }
+  .panel h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #0C447C;
+  }
+  .panel .sub {
+    font-size: 12px;
+    color: #5F5E5A;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .form-section {
+    background: #F8FAFC;
+    border: 1px solid #E8EAED;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .form-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1F2329;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .form-section h3 .step {
+    background: #185FA5;
+    color: #fff;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: #5F5E5A;
+    margin-bottom: 4px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    border: 1px solid #D0D3D8;
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1F2329;
+    background: #fff;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: 2px solid #85B7EB;
+    border-color: #185FA5;
+  }
+  .field textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+  .hint { font-size: 11px; color: #5F5E5A; margin-top: 4px; }
+  .err { color: #A32D2D; font-size: 11px; margin-top: 4px; display: none; }
+  .err.show { display: block; }
+
+  .day-editor {
+    border: 1px dashed #B4B2A9;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #fff;
+    position: relative;
+  }
+  .day-editor .del {
+    position: absolute;
+    top: 8px; right: 10px;
+    border: none;
+    background: #FCEBEB;
+    color: #A32D2D;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  .day-editor .day-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444441;
+    margin-bottom: 8px;
+  }
+
+  .deduct-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 8px;
+  }
+  .deduct-row .rm {
+    border: none;
+    background: #FCEBEB;
+    color: #A32D2D;
+    border-radius: 6px;
+    padding: 7px 10px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== 看板 ===== */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .kpi {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+    border: 1px solid #E8EAED;
+  }
+  .kpi .num { font-size: 22px; font-weight: 700; color: #185FA5; }
+  .kpi .num.warn { color: #A32D2D; }
+  .kpi .num.ok { color: #0F6E56; }
+  .kpi .num.amber { color: #854F0B; }
+  .kpi .lbl { font-size: 11px; color: #5F5E5A; margin-top: 3px; }
+
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #E8EAED;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #E6F1FB;
+    color: #185FA5;
+  }
+  .badge.green { background: #E1F5EE; color: #0F6E56; }
+  .badge.amber { background: #FAEEDA; color: #854F0B; }
+  .badge.red { background: #FCEBEB; color: #A32D2D; }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 56px 1fr 118px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .day-label { font-size: 13px; font-weight: 500; color: #444441; }
+  .bar-track {
+    height: 26px;
+    background: #F1EFE8;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+  }
+  .seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 500;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .seg.track { background: #0F6E56; }
+  .seg.none { background: #F09595; }
+  .seg.draft { background: #EF9F27; }
+  .seg.cancel { background: #5F5E5A; }
+  .day-meta { font-size: 11px; color: #5F5E5A; text-align: right; }
+  .day-meta b { color: #1F2329; font-weight: 600; font-size: 12px; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #E8EAED;
+  }
+  .legend span { font-size: 11px; color: #5F5E5A; display: flex; align-items: center; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-center { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+  .donut-center svg { transform: rotate(-90deg); width: 140px; height: 140px; }
+  .donut-center .center-txt {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .donut-center .center-txt .big { font-size: 22px; font-weight: 700; color: #1F2329; }
+  .donut-center .center-txt .small { font-size: 11px; color: #5F5E5A; }
+  .donut-list { flex: 1; }
+  .donut-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #F5F5F3;
+  }
+  .donut-item:last-child { border-bottom: none; }
+  .donut-item .left { display: flex; align-items: center; gap: 8px; color: #444441; }
+  .donut-item .val { font-weight: 600; color: #1F2329; }
+  .donut-item .val small { font-weight: 400; color: #5F5E5A; font-size: 11px; margin-left: 4px; }
+
+  .bal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F0F0EE;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .bal-top .balance .n { font-size: 32px; font-weight: 700; color: #0F6E56; }
+  .bal-top .balance .n span { font-size: 14px; font-weight: 500; color: #5F5E5A; }
+  .bal-top .balance .t { font-size: 12px; color: #5F5E5A; margin-top: 2px; }
+  .bal-top .spent { text-align: right; }
+  .bal-top .spent .n { font-size: 22px; font-weight: 700; color: #A32D2D; }
+  .bal-top .spent .n span { font-size: 12px; font-weight: 500; color: #5F5E5A; }
+  .bal-top .spent .t { font-size: 12px; color: #5F5E5A; margin-top: 2px; }
+
+  .waterfall { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 4px; }
+  .wf-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .wf-val { font-size: 11px; font-weight: 600; color: #A32D2D; margin-bottom: 4px; }
+  .wf-bar {
+    width: 100%;
+    max-width: 56px;
+    background: #F09595;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+  }
+  .wf-bar.sum {
+    background: transparent;
+    border: 2px dashed #A32D2D;
+    opacity: 0.55;
+  }
+  .wf-lbl { font-size: 11px; color: #5F5E5A; margin-top: 6px; }
+  .wf-lbl.total { color: #A32D2D; font-weight: 600; }
+
+  .note {
+    margin-top: 12px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .note.ok { background: #E1F5EE; color: #085041; }
+  .note.warn { background: #FCEBEB; color: #791F1F; }
+
+  .rent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .rent-box {
+    background: #FAEEDA;
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid #EF9F27;
+  }
+  .rent-box .t { font-size: 11px; color: #854F0B; margin-bottom: 4px; }
+  .rent-box .v { font-size: 20px; font-weight: 700; color: #633806; }
+  .timeline { position: relative; padding-left: 18px; margin-top: 4px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: #EF9F27;
+    border-radius: 1px;
+  }
+  .tl-item { position: relative; padding: 5px 0; font-size: 13px; color: #444441; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -17px; top: 11px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #EF9F27;
+  }
+  .tl-item.active::before { background: #EF9F27; }
+  .tl-item b { color: #1F2329; }
+  .status-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #FAEEDA;
+    color: #854F0B;
+    border: 1px dashed #EF9F27;
+    margin-top: 8px;
+  }
+  .status-pill.done {
+    background: #E1F5EE;
+    color: #085041;
+    border-color: #0F6E56;
+  }
+
+  .trend-box canvas { width: 100%; height: 160px; display: block; }
+  .trend-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5F5E5A;
+    margin-top: 6px;
+  }
+
+  .hist-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .hist-table th {
+    text-align: left;
+    font-weight: 500;
+    color: #5F5E5A;
+    padding: 6px 8px;
+    border-bottom: 1px solid #E8EAED;
+    background: #F1EFE8;
+  }
+  .hist-table th:first-child { border-radius: 6px 0 0 0; }
+  .hist-table th:last-child { border-radius: 0 6px 0 0; }
+  .hist-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #F5F5F3;
+    color: #444441;
+  }
+  .hist-table tr:last-child td { border-bottom: none; }
+  .hist-table tr.highlight td { background: #E6F1FB; font-weight: 600; color: #0C447C; }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-left: 4px;
+  }
+  .tag.today { background: #185FA5; color: #fff; }
+  .row-actions button {
+    border: none;
+    background: #F1EFE8;
+    color: #444441;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    cursor: pointer;
+    margin-right: 4px;
+  }
+  .row-actions button:hover { background: #E8EAED; }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #5F5E5A;
+    padding: 6px 0 2px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1F2329;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    transition: 0.25s;
+    pointer-events: none;
+    z-index: 99;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .storage-bar {
+    font-size: 11px;
+    color: #5F5E5A;
+    background: #F1EFE8;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .storage-bar button {
+    border: none;
+    background: #fff;
+    border: 1px solid #D0D3D8;
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    margin-left: 4px;
+    font-family: inherit;
+  }
+
+  @media (max-width: 560px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .day-row { grid-template-columns: 44px 1fr 92px; }
+    .donut-wrap { flex-direction: column; }
+    .rent-grid { grid-template-columns: 1fr; }
+    .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr 1fr; }
+    .waterfall { height: 100px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="titleText">万国一件代发 · 运营日报</h1>
+      <p id="subtitle">加载中…</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-primary" id="btnOpenForm">＋ 录入今日数据</button>
+      <button class="btn btn-ghost" id="btnSyncBitable" title="粘贴多维表格同步数据">同步多维表格</button>
+      <button class="btn btn-ghost" id="btnShareHtml" title="生成含数据的独立 HTML，可直接发飞书">分享版 HTML</button>
+      <button class="btn btn-ghost" id="btnCopyText" title="复制文字摘要，粘贴到飞书群">复制文字摘要</button>
+      <button class="btn btn-ghost" id="btnPrint">打印 / 存 PDF</button>
+      <button class="btn btn-ghost" id="btnExport">导出备份</button>
+    </div>
+  </header>
+
+  <div class="storage-bar" style="background:#E6F1FB;color:#0C447C">
+    <span>
+      <b>自动同步：</b>在
+      <a href="https://blcl2026.feishu.cn/base/RoylbRWOxagG31snQJQcJ2LLnke" target="_blank" style="color:#185FA5;font-weight:600">飞书多维表格</a>
+      改数 → GitHub 每 10 分钟拉取 → 本页打开时自动读 <code>data.json</code>。
+      无需再粘贴。录入请用飞书表单。
+    </span>
+  </div>
+
+  <div class="storage-bar">
+    <span id="storageInfo">正在尝试加载 data.json …</span>
+    <span>
+      <button id="btnReloadRemote">重新拉取 data.json</button>
+      <button id="btnImport">导入备份</button>
+      <button id="btnReset">清空本机缓存</button>
+      <input type="file" id="fileImport" accept=".json,application/json" style="display:none">
+    </span>
+  </div>
+
+  <!-- 同步面板 -->
+  <div class="panel" id="syncPanel">
+    <h2>从多维表格同步</h2>
+    <div class="sub">
+      在飞书表里改完数后，把同步 JSON 粘贴到下面（助手可从多维表格生成，或用导出工具生成），
+      点「应用同步」刷新本看板。共用数据以飞书表为准。
+    </div>
+    <div class="field">
+      <textarea id="syncJson" style="min-height:140px;font-family:Consolas,'Courier New',monospace;font-size:12px"
+        placeholder='{"reportDate":"2026-11-24","days":[...],"balance":{...},"rent":{...},"history":[...]}'></textarea>
+    </div>
+    <div class="err" id="errSync">JSON 格式不对，需含 reportDate / days 等字段</div>
+    <div class="form-actions" style="margin-top:10px">
+      <button class="btn btn-blue" id="btnApplySync">应用同步</button>
+      <button class="btn btn-gray" id="btnCloseSync">关闭</button>
+    </div>
+  </div>
+
+  <!-- ========== 录入表单 ========== -->
+  <div class="panel" id="formPanel">
+    <h2 id="formTitle">录入今日数据</h2>
+    <div class="sub">
+      按下面三块填空即可，带 <b>*</b> 的必填。填完点底部「保存并生成报告」。<br>
+      同一天重复保存会覆盖，不会产生重复记录。
+    </div>
+
+    <!-- 1 物流 -->
+    <div class="form-section">
+      <h3><span class="step">1</span> 物流揽收</h3>
+      <div class="field" style="margin-bottom:10px">
+        <label>报告日期 *</label>
+        <input type="date" id="fDate" required>
+        <div class="hint">例如 2026-11-24；窗口内各天填下面的明细</div>
+      </div>
+      <div id="fDays"></div>
+      <button class="btn btn-gray" type="button" id="btnAddDay" style="font-size:12px;padding:6px 12px">＋ 添加一天</button>
+      <div class="err" id="errDays">每天：有轨迹 + 未轨迹 + 草稿 + 取消 = 运单总数，请核对。</div>
+    </div>
+
+    <!-- 2 余额 -->
+    <div class="form-section">
+      <h3><span class="step">2</span> 账户余额</h3>
+      <div class="grid-2">
+        <div class="field">
+          <label>当前余额 *</label>
+          <input type="number" id="fBalance" min="0" step="0.01" required>
+        </div>
+        <div class="field">
+          <label>货币</label>
+          <select id="fCurrency">
+            <option value="MXN">MXN</option>
+            <option value="USD">USD</option>
+            <option value="CNY">CNY</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label>是否需要充值</label>
+        <select id="fNeedRecharge">
+          <option value="false">否 · 余额充足</option>
+          <option value="true">是 · 需要充值</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label>备注（显示在余额下方）</label>
+        <input type="text" id="fBalNote" placeholder="如：余额充足，本期未产生充值需求">
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:11px;color:#5F5E5A;display:block;margin-bottom:6px">出库扣费（可多笔）</label>
+        <div id="fDeductions"></div>
+        <button class="btn btn-gray" type="button" id="btnAddDeduct" style="font-size:12px;padding:6px 12px">＋ 添加扣费</button>
+      </div>
+    </div>
+
+    <!-- 3 仓租 -->
+    <div class="form-section">
+      <h3><span class="step">3</span> 仓租情况</h3>
+      <div class="grid-3">
+        <div class="field">
+          <label>起租日</label>
+          <input type="text" id="fRentStart" placeholder="如 11.7">
+        </div>
+        <div class="field">
+          <label>合计仓租</label>
+          <input type="number" id="fRentCost" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>测算方案说明</label>
+          <input type="text" id="fRentLabel" placeholder="如 45天免租方案">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:8px">
+        <div class="field">
+          <label>状态</label>
+          <select id="fRentStatus">
+            <option value="negotiating">谈判中</option>
+            <option value="done">已谈妥</option>
+            <option value="pending">待启动</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>状态说明</label>
+          <input type="text" id="fRentStatusText" placeholder="如 60天免租争取中">
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label>进展时间线（每行一条，可加 * 标当前）</label>
+        <textarea id="fRentTimeline" placeholder="11.7 起租（按45天免租测算）&#10;* 进行中：争取60天免租期&#10;目标：免租延长15天"></textarea>
+      </div>
+    </div>
+
+    <!-- 4 可选：直接粘贴模板 -->
+    <div class="form-section">
+      <h3><span class="step">4</span> 或：一键粘贴文本模板</h3>
+      <div class="field">
+        <label>按下面格式填好，点「解析并填入」</label>
+        <textarea id="fPaste" style="min-height:120px;font-family:Consolas,'Courier New',monospace;font-size:12px"
+placeholder="日期: 2026-11-24
+运单:
+11.24 总数=60 有轨迹=5 未轨迹=52 草稿=3 取消=0
+余额: 4500 MXN
+需要充值: 否
+扣费:
+11.23 200
+11.24 180
+仓租:
+起租日: 11.7
+合计: 4536.14
+方案: 45天免租
+状态: 谈判中
+说明: 60天免租争取中
+进展:
+11.7 起租
+* 争取60天免租"></textarea>
+        <div class="hint">「运单」每天一行；「扣费」「进展」可多行；「需要充值」填 是/否</div>
+      </div>
+      <div class="err" id="errPaste">解析失败，请检查格式</div>
+      <button class="btn btn-gray" type="button" id="btnParsePaste" style="margin-top:8px;font-size:12px;padding:7px 14px">解析并填入表单</button>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-blue" id="btnSave">保存并生成报告</button>
+      <button class="btn btn-gray" id="btnCancelForm">取消</button>
+      <span class="hint" id="saveHint" style="align-self:center"></span>
+    </div>
+    <div class="err" id="errSave" style="margin-top:8px"></div>
+  </div>
+
+  <!-- ========== 看板 ========== -->
+  <div id="dashboard">
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card">
+      <h2>① 物流揽收 <span class="badge" id="logiBadge">—</span></h2>
+      <div id="dayRows"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:#0F6E56"></i><span id="lgTrack">有轨迹</span></span>
+        <span><i class="dot" style="background:#F09595"></i><span id="lgNone">未轨迹</span></span>
+        <span><i class="dot" style="background:#EF9F27"></i><span id="lgDraft">草稿待提交</span></span>
+        <span><i class="dot" style="background:#5F5E5A"></i><span id="lgCancel">已取消</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>运单状态占比 <span class="badge" id="donutBadge">—</span></h2>
+      <div class="donut-wrap">
+        <div class="donut-center">
+          <svg viewBox="0 0 140 140" id="donutSvg"></svg>
+          <div class="center-txt">
+            <div class="big" id="donutTotal">0</div>
+            <div class="small">窗口运单</div>
+          </div>
+        </div>
+        <div class="donut-list" id="donutList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>多日趋势 <span class="badge" id="trendBadge">—</span></h2>
+      <div><canvas id="trendCanvas" width="680" height="160"></canvas></div>
+      <div class="trend-meta">
+        <span>柱高 = 当日运单量</span>
+        <span id="trendRange"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>② 账户余额 <span class="badge green" id="balBadge">—</span></h2>
+      <div class="bal-top" id="balTop"></div>
+      <div class="waterfall" id="waterfall"></div>
+      <div class="note ok" id="balNote"></div>
+    </div>
+
+    <div class="card">
+      <h2>③ 仓租情况 <span class="badge amber" id="rentBadge">—</span></h2>
+      <div class="rent-grid" id="rentGrid"></div>
+      <div class="timeline" id="rentTimeline"></div>
+      <div class="status-pill" id="rentPill"></div>
+    </div>
+
+    <div class="card">
+      <h2>历史日报 <span class="badge" id="histBadge">—</span></h2>
+      <div style="overflow-x:auto">
+        <table class="hist-table" id="histTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const KEY = "wanguo_daily_report_v1";
+
+  /* ---------- 默认种子数据（首次打开） ---------- */
+  function seed() {
+    return {
+      title: "万国一件代发",
+      current: {
+        reportDate: "2026-11-23",
+        days: [
+          { date: "11.20", total: 10, tracked: 10, untracked: 0, draft: 0, canceled: 0 },
+          { date: "11.21", total: 22, tracked: 18, untracked: 4,  draft: 0, canceled: 0 },
+          { date: "11.22", total: 55, tracked: 0,  untracked: 54, draft: 0, canceled: 1 },
+          { date: "11.23", total: 58, tracked: 0,  untracked: 55, draft: 3, canceled: 0 }
+        ],
+        balance: {
+          currency: "MXN",
+          current: 4588,
+          needRecharge: false,
+          note: "余额充足，本期未产生充值需求",
+          deductions: [
+            { date: "11.19", amount: 160 },
+            { date: "11.20", amount: 496 },
+            { date: "11.21", amount: 204 },
+            { date: "11.22", amount: 212 }
+          ]
+        },
+        rent: {
+          startDate: "11.7",
+          planLabel: "45天免租方案 · 合计仓租",
+          totalCost: 4536.14,
+          status: "negotiating",
+          statusText: "60 天免租期争取中 · 结果待确认",
+          timeline: [
+            { text: "11.7 起租（按 45 天免租测算）", active: false },
+            { text: "进行中：争取 60 天免租期", active: true },
+            { text: "目标：免租延长 15 天，降低仓租成本", active: false }
+          ]
+        }
+      },
+      history: [
+        { date: "2026-11-23", total: 145, tracked: 28, untracked: 113, draft: 3, canceled: 1,
+          balance: 4588, spent: 1072 },
+        { date: "2026-11-22", total: 140, tracked: 28, untracked: 109, draft: 3, canceled: 1,
+          balance: 4800, spent: 860 },
+        { date: "2026-11-21", total: 120, tracked: 28, untracked: 92, draft: 0, canceled: 0,
+          balance: 5004, spent: 656 },
+        { date: "2026-11-20", total: 90, tracked: 28, untracked: 62, draft: 0, canceled: 0,
+          balance: 5208, spent: 452 },
+        { date: "2026-11-19", total: 55, tracked: 18, untracked: 37, draft: 0, canceled: 0,
+          balance: 5368, spent: 160 }
+      ]
+    };
+  }
+
+  /* ---------- 存储与远程 data.json ---------- */
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return seed();
+  }
+  function save(db) {
+    try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {}
+  }
+  function normalizeRemote(data) {
+    if (!data || typeof data !== "object") return null;
+    // 完整 db 形状
+    if (data.current && data.current.days) return data;
+    // 同步包形状 { reportDate, days, balance, rent, history }
+    if (data.reportDate && Array.isArray(data.days)) {
+      return {
+        title: data.title || "万国一件代发",
+        current: {
+          reportDate: data.reportDate,
+          days: data.days,
+          balance: data.balance || { currency: "MXN", current: 0, needRecharge: false, note: "", deductions: [] },
+          rent: data.rent || { startDate: "", planLabel: "", totalCost: 0, status: "pending", statusText: "", timeline: [] }
+        },
+        history: Array.isArray(data.history) ? data.history : []
+      };
+    }
+    return null;
+  }
+  async function fetchRemoteDb() {
+    try {
+      const res = await fetch("data.json?_t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return normalizeRemote(data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  let db = loadLocal();
+  let remoteOk = false;
+  let remoteSyncedAt = "";
+
+  function applyRemote(remote) {
+    db = remote;
+    remoteOk = true;
+    const meta = remote._meta || {};
+    remoteSyncedAt = meta.synced_at || (remote.current && remote.current.reportDate) || "";
+    // 不写入 localStorage，避免覆盖本机；以 data.json 为准
+    render();
+    updateStorageInfo();
+  }
+
+  function updateStorageInfo() {
+    const el = $("storageInfo");
+    if (!el) return;
+    if (remoteOk) {
+      el.innerHTML =
+        "✓ 已自动加载 <b>data.json</b>" +
+        (remoteSyncedAt ? " · 同步于 " + remoteSyncedAt : "") +
+        " · 报告日 " + (db.current.reportDate || "");
+    } else {
+      el.innerHTML =
+        "⚠ 未取到 data.json（本地文件或未部署）· 当前为本机/示例数据 · 部署到 GitHub Pages 后自动同步";
+    }
+  }
+
+  /* ---------- 工具 ---------- */
+  function $(id) { return document.getElementById(id); }
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+  function fmtDateCN(iso) {
+    if (!iso) return "";
+    const p = iso.split("-");
+    return p.length === 3 ? (p[0] + "-" + p[1] + "-" + p[2]) : iso;
+  }
+  function shortDate(iso) {
+    if (!iso) return "";
+    const p = iso.split("-");
+    return p.length >= 3 ? p[1] + "." + p[2] : iso;
+  }
+  function sumDays(days) {
+    return days.reduce((a, d) => ({
+      total: a.total + (+d.total || 0),
+      tracked: a.tracked + (+d.tracked || 0),
+      untracked: a.untracked + (+d.untracked || 0),
+      draft: a.draft + (+d.draft || 0),
+      canceled: a.canceled + (+d.canceled || 0)
+    }), { total: 0, tracked: 0, untracked: 0, draft: 0, canceled: 0 });
+  }
+  function spentOf(bal) {
+    return (bal.deductions || []).reduce((s, x) => s + (+x.amount || 0), 0);
+  }
+  function snapshotFromCurrent(cur) {
+    const s = sumDays(cur.days);
+    return {
+      date: cur.reportDate,
+      total: s.total,
+      tracked: s.tracked,
+      untracked: s.untracked,
+      draft: s.draft,
+      canceled: s.canceled,
+      balance: +cur.balance.current || 0,
+      spent: spentOf(cur.balance)
+    };
+  }
+
+  /* ================= 表单 ================= */
+  let editingDate = null; // null=新增/当日；字符串=覆盖已有
+
+  function dayRowHtml(d, idx) {
+    return `
+      <div class="day-editor" data-idx="${idx}">
+        <button type="button" class="del" data-del-day="${idx}">删除</button>
+        <div class="day-title">第 ${idx + 1} 天</div>
+        <div class="grid-5">
+          <div class="field"><label>日期 *</label>
+            <input type="text" data-k="date" value="${d.date || ""}" placeholder="11.24"></div>
+          <div class="field"><label>运单总数 *</label>
+            <input type="number" data-k="total" min="0" value="${d.total ?? ""}"></div>
+          <div class="field"><label>有轨迹</label>
+            <input type="number" data-k="tracked" min="0" value="${d.tracked ?? 0}"></div>
+          <div class="field"><label>未轨迹</label>
+            <input type="number" data-k="untracked" min="0" value="${d.untracked ?? 0}"></div>
+          <div class="field"><label>草稿 / 取消</label>
+            <div style="display:flex;gap:4px">
+              <input type="number" data-k="draft" min="0" value="${d.draft ?? 0}" title="草稿" style="width:50%">
+              <input type="number" data-k="canceled" min="0" value="${d.canceled ?? 0}" title="取消" style="width:50%">
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderDayEditors(days) {
+    $("fDays").innerHTML = days.map((d, i) => dayRowHtml(d, i)).join("");
+    $("fDays").querySelectorAll("[data-del-day]").forEach(btn => {
+      btn.onclick = () => {
+        const i = +btn.getAttribute("data-del-day");
+        const arr = readDays();
+        arr.splice(i, 1);
+        renderDayEditors(arr);
+      };
+    });
+  }
+
+  function readDays() {
+    return Array.from($("fDays").querySelectorAll(".day-editor")).map(el => {
+      const g = k => el.querySelector(`[data-k="${k}"]`).value;
+      return {
+        date: (g("date") || "").trim(),
+        total: +g("total") || 0,
+        tracked: +g("tracked") || 0,
+        untracked: +g("untracked") || 0,
+        draft: +g("draft") || 0,
+        canceled: +g("canceled") || 0
+      };
+    });
+  }
+
+  function deductRowHtml(d) {
+    return `
+      <div class="deduct-row">
+        <div class="field"><label>日期</label>
+          <input type="text" data-dd="date" value="${d.date || ""}" placeholder="11.24"></div>
+        <div class="field"><label>金额（正数）</label>
+          <input type="number" data-dd="amount" min="0" step="0.01" value="${d.amount ?? ""}"></div>
+        <button type="button" class="rm">删</button>
+      </div>`;
+  }
+
+  function renderDeductions(list) {
+    $("fDeductions").innerHTML = list.map(d => deductRowHtml(d)).join("");
+    $("fDeductions").querySelectorAll(".rm").forEach(btn => {
+      btn.onclick = () => {
+        const arr = readDeductions();
+        const row = btn.closest(".deduct-row");
+        const idx = Array.from(row.parentNode.children).indexOf(row);
+        arr.splice(idx, 1);
+        renderDeductions(arr);
+      };
+    });
+  }
+
+  function readDeductions() {
+    return Array.from($("fDeductions").querySelectorAll(".deduct-row")).map(el => ({
+      date: (el.querySelector('[data-dd="date"]').value || "").trim(),
+      amount: +el.querySelector('[data-dd="amount"]').value || 0
+    })).filter(d => d.date || d.amount);
+  }
+
+  function fillForm(cur, forDate) {
+    editingDate = forDate;
+    $("formTitle").textContent = forDate
+      ? ("编辑 / 覆盖 " + forDate + " 数据")
+      : "录入今日数据";
+    $("fDate").value = cur.reportDate || new Date().toISOString().slice(0, 10);
+    renderDayEditors(cur.days.length ? cur.days : [{ date: shortDate($("fDate").value), total: "", tracked: 0, untracked: 0, draft: 0, canceled: 0 }]);
+    $("fBalance").value = cur.balance.current ?? "";
+    $("fCurrency").value = cur.balance.currency || "MXN";
+    $("fNeedRecharge").value = String(!!cur.balance.needRecharge);
+    $("fBalNote").value = cur.balance.note || "";
+    renderDeductions(cur.balance.deductions || []);
+    $("fRentStart").value = cur.rent.startDate || "";
+    $("fRentCost").value = cur.rent.totalCost ?? "";
+    $("fRentLabel").value = (cur.rent.planLabel || "").replace(" · 合计仓租", "");
+    $("fRentStatus").value = cur.rent.status || "negotiating";
+    $("fRentStatusText").value = cur.rent.statusText || "";
+    $("fRentTimeline").value = (cur.rent.timeline || [])
+      .map(t => (t.active ? "* " : "") + t.text.replace(/\s*（.*?）\s*/g, m => m))
+      .join("\n");
+    $("errSave").classList.remove("show");
+    $("errDays").classList.remove("show");
+    $("formPanel").classList.add("show");
+    $("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function parsePaste(text) {
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const cur = {
+      reportDate: "",
+      days: [],
+      balance: { currency: "MXN", current: 0, needRecharge: false, note: "", deductions: [] },
+      rent: { startDate: "", planLabel: "", totalCost: "", status: "negotiating", statusText: "", timeline: [] }
+    };
+    let mode = "";
+    for (const line of lines) {
+      if (/^日期[:：]/.test(line)) {
+        cur.reportDate = line.split(/[:：]/)[1].trim();
+        // normalize to yyyy-mm-dd if possible
+        if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cur.reportDate)) {
+          const p = cur.reportDate.split("-");
+          cur.reportDate = p[0] + "-" + p[1].padStart(2, "0") + "-" + p[2].padStart(2, "0");
+        }
+        mode = "";
+      } else if (/^运单[:：]/.test(line)) { mode = "days"; }
+      else if (/^余额[:：]/.test(line)) {
+        mode = "";
+        const m = line.match(/余额[:：]\s*([\d.]+)\s*([A-Za-z]*)/);
+        if (m) { cur.balance.current = +m[1]; if (m[2]) cur.balance.currency = m[2].toUpperCase(); }
+      } else if (/^需要充值[:：]/.test(line)) {
+        cur.balance.needRecharge = /是|yes|true/i.test(line.split(/[:：]/)[1] || "");
+      } else if (/^扣费[:：]/.test(line)) { mode = "deduct"; }
+      else if (/^仓租[:：]/.test(line)) { mode = "rent"; }
+      else if (/^起租日[:：]/.test(line)) { cur.rent.startDate = line.split(/[:：]/)[1].trim(); }
+      else if (/^合计[:：]/.test(line)) { cur.rent.totalCost = +line.split(/[:：]/)[1].trim() || ""; }
+      else if (/^方案[:：]/.test(line)) { cur.rent.planLabel = line.split(/[:：]/)[1].trim(); }
+      else if (/^状态[:：]/.test(line)) {
+        const v = line.split(/[:：]/)[1].trim();
+        if (/已谈妥|完成|done/i.test(v)) cur.rent.status = "done";
+        else if (/谈判|争取|negotiat/i.test(v)) cur.rent.status = "negotiating";
+        else cur.rent.status = "pending";
+      }
+      else if (/^说明[:：]/.test(line)) { cur.rent.statusText = line.split(/[:：]/)[1].trim(); }
+      else if (/^进展[:：]/.test(line)) { mode = "timeline"; }
+      else if (mode === "days") {
+        // 11.24 总数=60 有轨迹=5 未轨迹=52 草稿=3 取消=0
+        const m = line.match(/^(\S+)\s+(.*)$/);
+        if (m) {
+          const date = m[1];
+          const kv = {};
+          m[2].replace(/(\S+?)\s*[=＝:：]\s*(\d+)/g, (_, k, v) => { kv[k] = +v; return ""; });
+          // also support Chinese keys mapping
+          const map = {
+            总数: "total", 运单: "total", 有轨迹: "tracked", 未轨迹: "untracked",
+            草稿: "draft", 取消: "canceled"
+          };
+          // re-parse with map
+          const kv2 = {};
+          const re = /(总数|运单总数|有轨迹|未轨迹|草稿|取消|total|tracked|untracked|draft|canceled)\s*[=＝:：]\s*(\d+)/g;
+          let mm;
+          while ((mm = re.exec(m[2])) !== null) {
+            const key = map[mm[1]] || mm[1];
+            kv2[key] = +mm[2];
+          }
+          cur.days.push({
+            date,
+            total: kv2.total ?? 0,
+            tracked: kv2.tracked ?? 0,
+            untracked: kv2.untracked ?? 0,
+            draft: kv2.draft ?? 0,
+            canceled: kv2.canceled ?? 0
+          });
+        }
+      } else if (mode === "deduct") {
+        const m = line.match(/^(\S+)\s+([\d.]+)$/);
+        if (m) cur.balance.deductions.push({ date: m[1], amount: +m[2] });
+      } else if (mode === "timeline") {
+        const active = line.startsWith("*");
+        const text = (active ? line.slice(1) : line).trim();
+        if (text) cur.rent.timeline.push({ text, active });
+      }
+    }
+    return cur;
+  }
+
+  /* ================= 渲染看板 ================= */
+  function render() {
+    const cur = db.current;
+    const sum = sumDays(cur.days);
+    const spent = spentOf(cur.balance);
+    const trackRate = sum.total ? (sum.tracked / sum.total * 100) : 0;
+
+    $("titleText").textContent = (db.title || "万国") + " · 运营日报";
+    $("subtitle").textContent = fmtDateCN(cur.reportDate) + " ｜ 物流揽收 · 账户余额 · 仓租进度";
+    $("footer").textContent = "数据截至 " + fmtDateCN(cur.reportDate) + " · 点右上角「录入今日数据」更新";
+
+    const hist = db.history || [];
+    $("storageInfo").textContent =
+      "本机已存 " + hist.length + " 条历史 · 数据在浏览器 localStorage（可导出备份）";
+
+    /* KPI */
+    $("kpis").innerHTML = `
+      <div class="kpi"><div class="num">${sum.total}</div><div class="lbl">窗口运单</div></div>
+      <div class="kpi"><div class="num ok">${sum.tracked}</div><div class="lbl">已有轨迹 ${trackRate.toFixed(0)}%</div></div>
+      <div class="kpi"><div class="num warn">${sum.untracked}</div><div class="lbl">未有轨迹</div></div>
+      <div class="kpi"><div class="num amber">${cur.balance.current}</div><div class="lbl">余额 ${cur.balance.currency}</div></div>`;
+
+    /* Day rows */
+    $("dayRows").innerHTML = cur.days.map(d => {
+      const t = d.total || 1;
+      const pct = n => ((+n || 0) / t * 100).toFixed(1) + "%";
+      const segs = [];
+      if (d.tracked > 0) segs.push(`<div class="seg track" style="width:${pct(d.tracked)}">${d.tracked} 有轨迹</div>`);
+      if (d.untracked > 0) segs.push(`<div class="seg none" style="width:${pct(d.untracked)}">${d.untracked >= 8 ? d.untracked + " 未轨迹" : ""}</div>`);
+      if (d.draft > 0) segs.push(`<div class="seg draft" style="width:${pct(d.draft)}" title="${d.draft} 草稿">${d.draft >= 8 ? d.draft + " 草稿" : ""}</div>`);
+      if (d.canceled > 0) segs.push(`<div class="seg cancel" style="width:${pct(d.canceled)}" title="${d.canceled} 取消"></div>`);
+      const rate = d.total ? Math.round(d.tracked / d.total * 100) : 0;
+      return `<div class="day-row">
+        <div class="day-label">${d.date}</div>
+        <div class="bar-track">${segs.join("")}</div>
+        <div class="day-meta"><b>${d.total}</b> 单 · ${rate}% 轨迹</div>
+      </div>`;
+    }).join("") || `<div class="hint">暂无运单数据</div>`;
+    $("logiBadge").textContent = cur.days.length + " 天窗口";
+    $("lgTrack").textContent = "有轨迹 " + sum.tracked;
+    $("lgNone").textContent = "未轨迹 " + sum.untracked;
+    $("lgDraft").textContent = "草稿待提交 " + sum.draft;
+    $("lgCancel").textContent = "已取消 " + sum.canceled;
+
+    /* Donut */
+    const parts = [
+      { key: "有轨迹", n: sum.tracked, c: "#0F6E56" },
+      { key: "未有轨迹", n: sum.untracked, c: "#F09595" },
+      { key: "草稿待提交", n: sum.draft, c: "#EF9F27" },
+      { key: "已取消", n: sum.canceled, c: "#5F5E5A" }
+    ].filter(p => p.n > 0);
+    const C = 2 * Math.PI * 54;
+    let offset = 0;
+    let arcs = `<circle cx="70" cy="70" r="54" fill="none" stroke="#F1EFE8" stroke-width="18"/>`;
+    parts.forEach(p => {
+      const len = sum.total ? (p.n / sum.total) * C : 0;
+      arcs += `<circle cx="70" cy="70" r="54" fill="none" stroke="${p.c}" stroke-width="18"
+        stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}"
+        stroke-dashoffset="${(-offset).toFixed(2)}"/>`;
+      offset += len;
+    });
+    $("donutSvg").innerHTML = arcs;
+    $("donutTotal").textContent = sum.total;
+    $("donutBadge").textContent = sum.total + " 单";
+    $("donutList").innerHTML = parts.map(p => {
+      const pct = sum.total ? (p.n / sum.total * 100).toFixed(1) : "0.0";
+      return `<div class="donut-item">
+        <div class="left"><i class="dot" style="background:${p.c}"></i>${p.key}</div>
+        <div class="val">${p.n} <small>${pct}%</small></div>
+      </div>`;
+    }).join("") || `<div class="hint">暂无数据</div>`;
+
+    /* Trend */
+    drawTrend((db.history || []).slice().reverse());
+
+    /* Balance */
+    const b = cur.balance;
+    $("balBadge").textContent = b.needRecharge ? "需要充值" : "无需充值";
+    $("balBadge").className = "badge " + (b.needRecharge ? "red" : "green");
+    $("balTop").innerHTML = `
+      <div class="balance">
+        <div class="n">${b.current} <span>${b.currency}</span></div>
+        <div class="t">当前账户余额</div>
+      </div>
+      <div class="spent">
+        <div class="n">−${spent} <span>${b.currency}</span></div>
+        <div class="t">出库扣费合计（${(b.deductions || []).length} 笔）</div>
+      </div>`;
+    const deds = b.deductions || [];
+    const maxDed = Math.max(...deds.map(d => d.amount), 1);
+    $("waterfall").innerHTML = deds.map(d => `
+      <div class="wf-col">
+        <div class="wf-val">−${d.amount}</div>
+        <div class="wf-bar" style="height:${(d.amount / maxDed * 100).toFixed(0)}%"></div>
+        <div class="wf-lbl">${d.date}</div>
+      </div>`).join("") + `
+      <div class="wf-col">
+        <div class="wf-val">−${spent}</div>
+        <div class="wf-bar sum" style="height:${Math.min(spent / maxDed * 100, 100).toFixed(0)}%"></div>
+        <div class="wf-lbl total">合计</div>
+      </div>`;
+    const noteEl = $("balNote");
+    noteEl.className = "note " + (b.needRecharge ? "warn" : "ok");
+    noteEl.textContent = (b.needRecharge ? "⚠ " : "✓ ") +
+      (b.note || (b.needRecharge ? "请尽快充值" : "余额充足"));
+
+    /* Rent */
+    const r = cur.rent;
+    const rentBadge = $("rentBadge");
+    if (r.status === "done") { rentBadge.textContent = "已谈妥"; rentBadge.className = "badge green"; }
+    else if (r.status === "negotiating") { rentBadge.textContent = "谈判中"; rentBadge.className = "badge amber"; }
+    else { rentBadge.textContent = "待启动"; rentBadge.className = "badge"; }
+    $("rentGrid").innerHTML = `
+      <div class="rent-box"><div class="t">起租日</div><div class="v">${r.startDate || "—"}</div></div>
+      <div class="rent-box"><div class="t">${r.planLabel || "合计仓租"}</div><div class="v">${r.totalCost ?? "—"}</div></div>`;
+    $("rentTimeline").innerHTML = (r.timeline || []).map(t =>
+      `<div class="tl-item${t.active ? " active" : ""}">${t.text}</div>`
+    ).join("") || `<div class="hint">暂无进展</div>`;
+    const pill = $("rentPill");
+    pill.textContent = (r.status === "done" ? "✓ " : "⏳ ") + (r.statusText || "—");
+    pill.className = "status-pill" + (r.status === "done" ? " done" : "");
+
+    /* History table */
+    $("histBadge").textContent = hist.length + " 条";
+    if (hist.length) {
+      $("histTable").innerHTML = `
+        <thead><tr>
+          <th>日期</th><th>运单</th><th>有轨迹</th><th>未轨迹</th>
+          <th>余额</th><th>扣费</th><th></th>
+        </tr></thead>
+        <tbody>${hist.map((h, i) => `
+          <tr class="${i === 0 ? "highlight" : ""}">
+            <td>${h.date}${i === 0 ? '<span class="tag today">最新</span>' : ""}</td>
+            <td>${h.total}</td>
+            <td>${h.tracked}</td>
+            <td>${h.untracked}</td>
+            <td>${h.balance}</td>
+            <td>−${h.spent}</td>
+            <td class="row-actions">
+              <button data-edit="${h.date}">载入</button>
+            </td>
+          </tr>`).join("")}</tbody>`;
+      $("histTable").querySelectorAll("[data-edit]").forEach(btn => {
+        btn.onclick = () => {
+          const date = btn.getAttribute("data-edit");
+          // try find full current-like data from history by re-filling minimal
+          toast("已载入 " + date + " 的汇总到表单（明细可再改）");
+          fillForm({
+            reportDate: date,
+            days: [{
+              date: shortDate(date),
+              total: 0, tracked: 0, untracked: 0, draft: 0, canceled: 0
+            }],
+            balance: {
+              currency: db.current.balance.currency,
+              current: 0, needRecharge: false, note: "",
+              deductions: []
+            },
+            rent: db.current.rent
+          }, date);
+          // fill numbers from history
+          const h = hist.find(x => x.date === date);
+          if (h) {
+            $("fBalance").value = h.balance;
+            // put totals into single day row for convenience
+            const row = $("fDays").querySelector(".day-editor");
+            if (row) {
+              row.querySelector('[data-k="total"]').value = h.total;
+              row.querySelector('[data-k="tracked"]').value = h.tracked;
+              row.querySelector('[data-k="untracked"]').value = h.untracked;
+              row.querySelector('[data-k="draft"]').value = h.draft || 0;
+              row.querySelector('[data-k="canceled"]').value = h.canceled || 0;
+            }
+            // approximate deduction total as one row
+            renderDeductions([{ date: shortDate(date), amount: h.spent }]);
+          }
+        };
+      });
+    } else {
+      $("histTable").innerHTML = `<tbody><tr><td style="color:#5F5E5A">保存数据后自动生成历史</td></tr></tbody>`;
+    }
+  }
+
+  function drawTrend(hist) {
+    const canvas = $("trendCanvas");
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const padL = 36, padR = 12, padT = 18, padB = 28;
+    ctx.clearRect(0, 0, W, H);
+    if (!hist.length) {
+      ctx.fillStyle = "#5F5E5A";
+      ctx.textAlign = "center";
+      ctx.fillText("保存数据后显示趋势", W / 2, H / 2);
+      $("trendBadge").textContent = "暂无";
+      $("trendRange").textContent = "";
+      return;
+    }
+    const maxV = Math.max(...hist.map(h => h.total), 1);
+    const gap = (W - padL - padR) / hist.length;
+    const bw = Math.min(48, gap * 0.55);
+    ctx.strokeStyle = "#F0F0EE";
+    ctx.fillStyle = "#5F5E5A";
+    ctx.font = "11px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+    ctx.textAlign = "right";
+    for (let i = 0; i <= 4; i++) {
+      const v = Math.round(maxV * i / 4);
+      const y = padT + (H - padT - padB) * (1 - i / 4);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillText(String(v), padL - 6, y + 4);
+    }
+    hist.forEach((h, i) => {
+      const x = padL + gap * i + (gap - bw) / 2;
+      const barH = (H - padT - padB) * (h.total / maxV);
+      const y = H - padB - barH;
+      const isLast = i === hist.length - 1;
+      ctx.fillStyle = isLast ? "#185FA5" : "#85B7EB";
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, bw, barH, [4, 4, 0, 0]);
+      else ctx.rect(x, y, bw, barH);
+      ctx.fill();
+      ctx.fillStyle = "#1F2329";
+      ctx.textAlign = "center";
+      ctx.fillText(String(h.total), x + bw / 2, y - 5);
+      ctx.fillStyle = "#5F5E5A";
+      ctx.fillText(String(h.date).slice(5), x + bw / 2, H - 8);
+    });
+    $("trendBadge").textContent = hist.length + " 天";
+    $("trendRange").textContent = hist[0].date + " → " + hist[hist.length - 1].date;
+  }
+
+  /* ================= 保存逻辑 ================= */
+  function validateAndBuild() {
+    const reportDate = $("fDate").value;
+    if (!reportDate) throw "请填写报告日期";
+    const days = readDays();
+    if (!days.length) throw "请至少填写一天运单数据";
+    for (const d of days) {
+      if (!d.date) throw "运单日期不能为空";
+      if (d.total <= 0) throw "运单总数必须大于 0";
+      const s = d.tracked + d.untracked + d.draft + d.canceled;
+      if (s !== d.total) {
+        $("errDays").textContent =
+          `日期 ${d.date}：有轨迹+未轨迹+草稿+取消 = ${s}，但总数填了 ${d.total}，请核对。`;
+        $("errDays").classList.add("show");
+        throw "校验失败";
+      }
+    }
+    $("errDays").classList.remove("show");
+
+    const balance = {
+      currency: $("fCurrency").value,
+      current: +$("fBalance").value || 0,
+      needRecharge: $("fNeedRecharge").value === "true",
+      note: $("fBalNote").value.trim(),
+      deductions: readDeductions()
+    };
+
+    const timeline = $("fRentTimeline").value.split(/\r?\n/)
+      .map(s => s.trim()).filter(Boolean)
+      .map(line => {
+        const active = line.startsWith("*");
+        return { text: (active ? line.slice(1) : line).trim(), active };
+      });
+
+    const rent = {
+      startDate: $("fRentStart").value.trim(),
+      planLabel: ($("fRentLabel").value.trim() || "仓租") + " · 合计仓租",
+      totalCost: $("fRentCost").value === "" ? "" : +$("fRentCost").value,
+      status: $("fRentStatus").value,
+      statusText: $("fRentStatusText").value.trim(),
+      timeline
+    };
+
+    return { reportDate, days, balance, rent };
+  }
+
+  function saveCurrent(asNewHistory) {
+    try {
+      const built = validateAndBuild();
+      db.current = built;
+      const snap = snapshotFromCurrent(built);
+      db.history = db.history || [];
+      const idx = db.history.findIndex(h => h.date === snap.date);
+      if (idx >= 0) db.history[idx] = snap;
+      else db.history.unshift(snap);
+      // keep newest first, limit 60
+      db.history.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+      if (db.history.length > 60) db.history.length = 60;
+      save(db);
+      render();
+      $("formPanel").classList.remove("show");
+      toast(idx >= 0 ? "已覆盖 " + snap.date + " 并更新面板" : "已保存 " + snap.date + " 并生成报告");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      if (e && e !== "校验失败") {
+        $("errSave").textContent = String(e);
+        $("errSave").classList.add("show");
+      }
+    }
+  }
+
+  /* ================= 事件 ================= */
+  $("btnOpenForm").onclick = () => fillForm(db.current, null);
+  $("btnCancelForm").onclick = () => $("formPanel").classList.remove("show");
+  $("btnSave").onclick = () => saveCurrent();
+  $("btnAddDay").onclick = () => {
+    const arr = readDays();
+    const last = arr[arr.length - 1];
+    // try next date
+    let next = "";
+    if (last && /^\d{1,2}\.\d{1,2}$/.test(last.date)) {
+      const [m, d] = last.date.split(".").map(Number);
+      const dt = new Date(2026, m - 1, d + 1); // year only for label advance
+      next = String(dt.getMonth() + 1).padStart(2, "0") + "." + String(dt.getDate()).padStart(2, "0");
+    }
+    arr.push({ date: next, total: "", tracked: 0, untracked: 0, draft: 0, canceled: 0 });
+    renderDayEditors(arr);
+  };
+  $("btnAddDeduct").onclick = () => {
+    const arr = readDeductions();
+    arr.push({ date: "", amount: "" });
+    renderDeductions(arr);
+  };
+  $("btnParsePaste").onclick = () => {
+    try {
+      const parsed = parsePaste($("fPaste").value);
+      $("errPaste").classList.remove("show");
+      if (!parsed.days.length && !parsed.reportDate) throw new Error("empty");
+      fillForm(parsed, null);
+      toast("已解析，请核对后保存");
+    } catch (e) {
+      $("errPaste").classList.add("show");
+    }
+  };
+
+  $("btnExport").onclick = () => {
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "万国日报备份_" + (db.current.reportDate || "data") + ".json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("备份已下载");
+  };
+
+  /* ---- A+B：多维表格同步 ---- */
+  $("btnSyncBitable").onclick = () => {
+    $("syncPanel").classList.add("show");
+    $("errSync").classList.remove("show");
+    $("syncPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  $("btnCloseSync").onclick = () => $("syncPanel").classList.remove("show");
+  $("btnApplySync").onclick = () => {
+    try {
+      const raw = $("syncJson").value.trim();
+      if (!raw) throw new Error("empty");
+      const data = JSON.parse(raw);
+      // Accept either full db or a "current+history" pack
+      if (data.days && data.reportDate) {
+        db.current = {
+          reportDate: data.reportDate,
+          days: data.days,
+          balance: data.balance || db.current.balance,
+          rent: data.rent || db.current.rent
+        };
+        if (data.history) db.history = data.history;
+      } else if (data.current) {
+        db = Object.assign({}, db, data);
+      } else {
+        throw new Error("shape");
+      }
+      // upsert snapshot into history
+      const snap = snapshotFromCurrent(db.current);
+      db.history = db.history || [];
+      const idx = db.history.findIndex(h => h.date === snap.date);
+      if (idx >= 0) db.history[idx] = snap;
+      else db.history.unshift(snap);
+      db.history.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+      if (db.history.length > 60) db.history.length = 60;
+      save(db);
+      render();
+      $("syncPanel").classList.remove("show");
+      $("syncJson").value = "";
+      toast("已从多维表格数据同步");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      $("errSync").classList.add("show");
+    }
+  };
+
+  /* ---- 分享：文字摘要（粘贴飞书群） ---- */
+  $("btnCopyText").onclick = async () => {
+    const cur = db.current;
+    const sum = sumDays(cur.days);
+    const spent = spentOf(cur.balance);
+    const lines = [];
+    lines.push("【" + (db.title || "万国") + "日报 " + cur.reportDate + "】");
+    lines.push("① 物流揽收：窗口共 " + sum.total + " 运单，" +
+      sum.tracked + " 有轨迹，" + sum.untracked + " 未轨迹，" +
+      sum.draft + " 草稿，" + sum.canceled + " 取消");
+    cur.days.forEach(d => {
+      const parts = [];
+      parts.push(d.tracked + " 有轨迹");
+      if (d.untracked) parts.push(d.untracked + " 未有");
+      if (d.draft) parts.push(d.draft + " 草稿待提交");
+      if (d.canceled) parts.push(d.canceled + " 已取消");
+      lines.push("  · " + d.date + "：" + d.total + " 单（" + parts.join("，") + "）");
+    });
+    lines.push("② 账户余额：" + cur.balance.current + " " + cur.balance.currency +
+      "；出库扣费合共 " + spent + " " + cur.balance.currency +
+      "，" + (cur.balance.needRecharge ? "需充值" : "未需要充值"));
+    if (cur.balance.deductions && cur.balance.deductions.length) {
+      lines.push("  · " + cur.balance.deductions.map(d => d.date + " −" + d.amount).join("，"));
+    }
+    const r = cur.rent;
+    lines.push("③ 仓租：起租 " + (r.startDate || "—") + "，" +
+      (r.planLabel || "合计仓租") + " " + (r.totalCost ?? "—") +
+      "；" + (r.statusText || (r.status === "done" ? "已谈妥" : "进行中")));
+    const text = lines.join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("文字摘要已复制，去飞书粘贴即可");
+    } catch (e) {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast("文字摘要已复制");
+    }
+  };
+
+  /* ---- 分享：独立 HTML（数据写死，对方无需你的浏览器） ---- */
+  $("btnShareHtml").onclick = () => {
+    // 关掉表单面板再截取当前 DOM 里的看板，避免把录入表单发出去
+    const panel = $("formPanel");
+    const wasShow = panel.classList.contains("show");
+    panel.classList.remove("show");
+
+    const clone = document.documentElement.cloneNode(true);
+    // 移除脚本，改为内嵌只读数据
+    clone.querySelectorAll("script").forEach(s => s.remove());
+    // 移除 toast
+    clone.querySelectorAll(".toast").forEach(t => t.remove());
+
+    // 在 clone 中注入只读渲染脚本
+    const payload = JSON.stringify(db).replace(/</g, "\\u003c");
+    const script = clone.ownerDocument.createElement("script");
+    script.textContent = `
+(function(){
+  var db = ${payload};
+  var cur = db.current, hist = db.history || [];
+  function sumDays(days){
+    return (days||[]).reduce(function(a,d){
+      return {
+        total:a.total+(+d.total||0),
+        tracked:a.tracked+(+d.tracked||0),
+        untracked:a.untracked+(+d.untracked||0),
+        draft:a.draft+(+d.draft||0),
+        canceled:a.canceled+(+d.canceled||0)
+      };
+    },{total:0,tracked:0,untracked:0,draft:0,canceled:0});
+  }
+  function spentOf(b){ return (b.deductions||[]).reduce(function(s,x){return s+(+x.amount||0);},0); }
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c];
+  }); }
+
+  var sum = sumDays(cur.days);
+  var spent = spentOf(cur.balance);
+  var trackRate = sum.total ? (sum.tracked/sum.total*100) : 0;
+
+  var titleEl = $("titleText"); if(titleEl) titleEl.textContent = (db.title||"万国")+" · 运营日报（分享版）";
+  var sub = $("subtitle"); if(sub) sub.textContent = cur.reportDate+" ｜ 只读快照 · 数据截至录入日";
+  var ft = $("footer"); if(ft) ft.textContent = "分享版快照 · 数据截至 "+cur.reportDate+" · 由原看板导出";
+
+  var si = $("storageInfo");
+  if(si) si.textContent = "只读分享版 · 数据已写入本文件，可直接发飞书/微信";
+  var bar = document.querySelector(".storage-bar");
+  if(bar) bar.style.display = "none";
+  var head = document.querySelector(".head-actions");
+  if(head) head.style.display = "none";
+
+  var kp = $("kpis");
+  if(kp) kp.innerHTML =
+    '<div class="kpi"><div class="num">'+sum.total+'</div><div class="lbl">窗口运单</div></div>'+
+    '<div class="kpi"><div class="num ok">'+sum.tracked+'</div><div class="lbl">已有轨迹 '+trackRate.toFixed(0)+'%</div></div>'+
+    '<div class="kpi"><div class="num warn">'+sum.untracked+'</div><div class="lbl">未有轨迹</div></div>'+
+    '<div class="kpi"><div class="num amber">'+cur.balance.current+'</div><div class="lbl">余额 '+esc(cur.balance.currency)+'</div></div>';
+
+  var dayRows = $("dayRows");
+  if(dayRows){
+    dayRows.innerHTML = (cur.days||[]).map(function(d){
+      var t = d.total||1;
+      var pct = function(n){ return ((+n||0)/t*100).toFixed(1)+"%"; };
+      var segs = [];
+      if(d.tracked>0) segs.push('<div class="seg track" style="width:'+pct(d.tracked)+'">'+d.tracked+' 有轨迹</div>');
+      if(d.untracked>0) segs.push('<div class="seg none" style="width:'+pct(d.untracked)+'">'+(d.untracked>=8?d.untracked+" 未轨迹":"")+'</div>');
+      if(d.draft>0) segs.push('<div class="seg draft" style="width:'+pct(d.draft)+'">'+(d.draft>=8?d.draft+" 草稿":"")+'</div>');
+      if(d.canceled>0) segs.push('<div class="seg cancel" style="width:'+pct(d.canceled)+'"></div>');
+      var rate = d.total ? Math.round(d.tracked/d.total*100) : 0;
+      return '<div class="day-row"><div class="day-label">'+esc(d.date)+'</div>'+
+        '<div class="bar-track">'+segs.join("")+'</div>'+
+        '<div class="day-meta"><b>'+d.total+'</b> 单 · '+rate+'% 轨迹</div></div>';
+    }).join("");
+  }
+  var lb = $("logiBadge"); if(lb) lb.textContent = (cur.days||[]).length+" 天窗口";
+  if($("lgTrack")) $("lgTrack").textContent = "有轨迹 "+sum.tracked;
+  if($("lgNone")) $("lgNone").textContent = "未轨迹 "+sum.untracked;
+  if($("lgDraft")) $("lgDraft").textContent = "草稿待提交 "+sum.draft;
+  if($("lgCancel")) $("lgCancel").textContent = "已取消 "+sum.canceled;
+
+  var parts = [
+    {key:"有轨迹",n:sum.tracked,c:"#0F6E56"},
+    {key:"未有轨迹",n:sum.untracked,c:"#F09595"},
+    {key:"草稿待提交",n:sum.draft,c:"#EF9F27"},
+    {key:"已取消",n:sum.canceled,c:"#5F5E5A"}
+  ].filter(function(p){return p.n>0;});
+  var C = 2*Math.PI*54, offset = 0;
+  var arcs = '<circle cx="70" cy="70" r="54" fill="none" stroke="#F1EFE8" stroke-width="18"/>';
+  parts.forEach(function(p){
+    var len = sum.total ? (p.n/sum.total)*C : 0;
+    arcs += '<circle cx="70" cy="70" r="54" fill="none" stroke="'+p.c+'" stroke-width="18" stroke-dasharray="'+len.toFixed(2)+' '+(C-len).toFixed(2)+'" stroke-dashoffset="'+(-offset).toFixed(2)+'"/>';
+    offset += len;
+  });
+  if($("donutSvg")) $("donutSvg").innerHTML = arcs;
+  if($("donutTotal")) $("donutTotal").textContent = sum.total;
+  if($("donutBadge")) $("donutBadge").textContent = sum.total+" 单";
+  if($("donutList")) $("donutList").innerHTML = parts.map(function(p){
+    var pct = sum.total ? (p.n/sum.total*100).toFixed(1) : "0.0";
+    return '<div class="donut-item"><div class="left"><i class="dot" style="background:'+p.c+'"></i>'+p.key+'</div><div class="val">'+p.n+' <small>'+pct+'%</small></div></div>';
+  }).join("");
+
+  // trend
+  var canvas = $("trendCanvas");
+  if(canvas){
+    var hist2 = hist.slice().reverse();
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+    var padL=36,padR=12,padT=18,padB=28;
+    ctx.clearRect(0,0,W,H);
+    if(hist2.length){
+      var maxV = Math.max.apply(null, hist2.map(function(h){return h.total;}).concat([1]));
+      var gap = (W-padL-padR)/hist2.length;
+      var bw = Math.min(48, gap*0.55);
+      ctx.strokeStyle="#F0F0EE"; ctx.fillStyle="#5F5E5A";
+      ctx.font="11px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+      ctx.textAlign="right";
+      for(var i=0;i<=4;i++){
+        var v=Math.round(maxV*i/4);
+        var y=padT+(H-padT-padB)*(1-i/4);
+        ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+        ctx.fillText(String(v), padL-6, y+4);
+      }
+      hist2.forEach(function(h, idx){
+        var x = padL + gap*idx + (gap-bw)/2;
+        var barH = (H-padT-padB)*(h.total/maxV);
+        var y2 = H-padB-barH;
+        ctx.fillStyle = idx===hist2.length-1 ? "#185FA5" : "#85B7EB";
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(x,y2,bw,barH,[4,4,0,0]); else ctx.rect(x,y2,bw,barH);
+        ctx.fill();
+        ctx.fillStyle="#1F2329"; ctx.textAlign="center";
+        ctx.fillText(String(h.total), x+bw/2, y2-5);
+        ctx.fillStyle="#5F5E5A";
+        ctx.fillText(String(h.date).slice(5), x+bw/2, H-8);
+      });
+    }
+    if($("trendBadge")) $("trendBadge").textContent = hist.length+" 天";
+    if($("trendRange") && hist.length) $("trendRange").textContent = hist[0].date+" → "+hist[hist.length-1].date;
+  }
+
+  var b = cur.balance;
+  if($("balBadge")){
+    $("balBadge").textContent = b.needRecharge ? "需要充值" : "无需充值";
+    $("balBadge").className = "badge "+(b.needRecharge?"red":"green");
+  }
+  if($("balTop")) $("balTop").innerHTML =
+    '<div class="balance"><div class="n">'+b.current+' <span>'+esc(b.currency)+'</span></div><div class="t">当前账户余额</div></div>'+
+    '<div class="spent"><div class="n">−'+spent+' <span>'+esc(b.currency)+'</span></div><div class="t">出库扣费合计（'+(b.deductions||[]).length+' 笔）</div></div>';
+  var deds = b.deductions||[];
+  var maxDed = Math.max.apply(null, deds.map(function(d){return d.amount;}).concat([1]));
+  if($("waterfall")) $("waterfall").innerHTML = deds.map(function(d){
+    return '<div class="wf-col"><div class="wf-val">−'+d.amount+'</div><div class="wf-bar" style="height:'+(d.amount/maxDed*100).toFixed(0)+'%"></div><div class="wf-lbl">'+esc(d.date)+'</div></div>';
+  }).join("") + '<div class="wf-col"><div class="wf-val">−'+spent+'</div><div class="wf-bar sum" style="height:'+Math.min(spent/maxDed*100,100).toFixed(0)+'%"></div><div class="wf-lbl total">合计</div></div>';
+  if($("balNote")){
+    $("balNote").className = "note "+(b.needRecharge?"warn":"ok");
+    $("balNote").textContent = (b.needRecharge?"⚠ ":"✓ ")+(b.note||(b.needRecharge?"请尽快充值":"余额充足"));
+  }
+
+  var r = cur.rent;
+  if($("rentBadge")){
+    if(r.status==="done"){ $("rentBadge").textContent="已谈妥"; $("rentBadge").className="badge green"; }
+    else if(r.status==="negotiating"){ $("rentBadge").textContent="谈判中"; $("rentBadge").className="badge amber"; }
+    else { $("rentBadge").textContent="待启动"; $("rentBadge").className="badge"; }
+  }
+  if($("rentGrid")) $("rentGrid").innerHTML =
+    '<div class="rent-box"><div class="t">起租日</div><div class="v">'+esc(r.startDate||"—")+'</div></div>'+
+    '<div class="rent-box"><div class="t">'+esc(r.planLabel||"合计仓租")+'</div><div class="v">'+esc(r.totalCost==null?"—":r.totalCost)+'</div></div>';
+  if($("rentTimeline")) $("rentTimeline").innerHTML = (r.timeline||[]).map(function(t){
+    return '<div class="tl-item'+(t.active?" active":"")+'">'+esc(t.text)+'</div>';
+  }).join("");
+  if($("rentPill")){
+    $("rentPill").textContent = (r.status==="done"?"✓ ":"⏳ ")+(r.statusText||"—");
+    $("rentPill").className = "status-pill"+(r.status==="done"?" done":"");
+  }
+
+  if($("histBadge")) $("histBadge").textContent = hist.length+" 条";
+  if($("histTable")){
+    if(hist.length){
+      $("histTable").innerHTML = '<thead><tr><th>日期</th><th>运单</th><th>有轨迹</th><th>未轨迹</th><th>余额</th><th>扣费</th></tr></thead><tbody>'+
+        hist.map(function(h,i){
+          return '<tr class="'+(i===0?"highlight":"")+'"><td>'+esc(h.date)+(i===0?'<span class="tag today">最新</span>':"")+'</td><td>'+h.total+'</td><td>'+h.tracked+'</td><td>'+h.untracked+'</td><td>'+h.balance+'</td><td>−'+h.spent+'</td></tr>';
+        }).join("")+'</tbody>';
+    } else {
+      $("histTable").innerHTML = '<tbody><tr><td>暂无历史</td></tr></tbody>';
+    }
+  }
+})();
+`;
+    clone.querySelector("body").appendChild(script);
+
+    const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "万国日报_" + (db.current.reportDate || "share") + "_分享版.html";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    if (wasShow) panel.classList.add("show");
+    toast("分享版已下载，可直接发到飞书");
+  };
+
+  $("btnPrint").onclick = () => {
+    const panel = $("formPanel");
+    const wasShow = panel.classList.contains("show");
+    panel.classList.remove("show");
+    window.print();
+    if (wasShow) panel.classList.add("show");
+  };
+  $("btnImport").onclick = () => $("fileImport").click();
+  $("fileImport").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data.current || !data.history) throw new Error("bad");
+        db = data;
+        save(db);
+        render();
+        toast("导入成功");
+      } catch (err) {
+        toast("导入失败：格式不对");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+  $("btnReset").onclick = () => {
+    if (!confirm("清空本机缓存？远程 data.json 仍会在部署环境生效。")) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    if (remoteOk) {
+      render();
+      toast("已清本机缓存，仍显示 data.json");
+    } else {
+      db = seed();
+      render();
+      toast("已重置为示例数据");
+    }
+    updateStorageInfo();
+  };
+
+  async function reloadRemote(showToast) {
+    if (showToast) toast("正在拉取 data.json…");
+    const remote = await fetchRemoteDb();
+    if (remote) {
+      applyRemote(remote);
+      if (showToast) toast("已从 data.json 更新");
+      return true;
+    }
+    remoteOk = false;
+    updateStorageInfo();
+    if (showToast) toast("未找到 data.json（需部署到网站）");
+    return false;
+  }
+
+  const btnReload = $("btnReloadRemote");
+  if (btnReload) btnReload.onclick = () => reloadRemote(true);
+
+  /* init: 先渲染本地，再尝试远程覆盖 */
+  render();
+  updateStorageInfo();
+  reloadRemote(false).then((ok) => {
+    if (ok) console.log("data.json loaded");
+  });
+})();
+</script>
+</body>
+</html>
