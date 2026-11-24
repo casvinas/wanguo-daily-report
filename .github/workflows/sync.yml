@@ -1,0 +1,50 @@
+name: Sync Feishu Bitable to data.json
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-bitable
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sync from Feishu Bitable
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          BITABLE_APP_TOKEN: ${{ vars.BITABLE_APP_TOKEN || 'RoylbRWOxagG31snQJQcJ2LLnke' }}
+          TABLE_LOGISTICS: ${{ vars.TABLE_LOGISTICS || 'tblTfMs76msYz4EH' }}
+          TABLE_BALANCE: ${{ vars.TABLE_BALANCE || 'tblpk4sKhj6we5Uo' }}
+          TABLE_RENT: ${{ vars.TABLE_RENT || 'tblY2xtlPGsSDk5t' }}
+          OUTPUT_PATH: data.json
+        run: python sync_bitable.py
+
+      - name: Commit and push data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --staged --quiet; then
+            echo "data.json unchanged"
+          else
+            git commit -m "chore: sync data.json from Feishu Bitable"
+            git push
+          fi
