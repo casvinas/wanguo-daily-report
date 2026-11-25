@@ -113,38 +113,38 @@
   "history": [
     {
       "date": "2026-11-25",
-      "total": 230,
-      "tracked": 218,
-      "untracked": 11,
+      "total": 9,
+      "tracked": 0,
+      "untracked": 9,
       "draft": 0,
-      "canceled": 1,
+      "canceled": 0,
       "balance": 11948.0,
       "spent": 4098
     },
     {
       "date": "2026-11-24",
-      "total": 221,
-      "tracked": 218,
+      "total": 21,
+      "tracked": 19,
       "untracked": 2,
       "draft": 0,
-      "canceled": 1,
+      "canceled": 0,
       "balance": 12726.0,
       "spent": 3780
     },
     {
       "date": "2026-11-23",
-      "total": 200,
-      "tracked": 199,
+      "total": 113,
+      "tracked": 113,
       "untracked": 0,
       "draft": 0,
-      "canceled": 1,
+      "canceled": 0,
       "balance": 4588.0,
       "spent": 1112
     },
     {
       "date": "2026-11-22",
-      "total": 87,
-      "tracked": 86,
+      "total": 55,
+      "tracked": 54,
       "untracked": 0,
       "draft": 0,
       "canceled": 1,
@@ -153,8 +153,8 @@
     },
     {
       "date": "2026-11-21",
-      "total": 32,
-      "tracked": 32,
+      "total": 22,
+      "tracked": 22,
       "untracked": 0,
       "draft": 0,
       "canceled": 0,
@@ -175,7 +175,7 @@
   "_meta": {
     "source": "feishu_bitable_auto",
     "app_token": "RoylbRWOxagG31snQJQcJ2LLnke",
-    "synced_at": "2026-11-25 09:27:19+0800",
+    "synced_at": "2026-11-25 09:48:22+0800",
     "days_count": 6,
     "deduction_count": 7
   }
