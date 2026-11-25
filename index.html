@@ -919,15 +919,74 @@ placeholder="日期: 2026-11-24
   function spentOf(bal) {
     return (bal.deductions || []).reduce((s, x) => s + (+x.amount || 0), 0);
   }
+
+  const WINDOW_DAYS = 7;
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+  function shortToIso(short, refIso) {
+    const m = String(short || "").match(/^(\d{1,2})[.\-/](\d{1,2})$/);
+    if (!m) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(short || ""))) return String(short).slice(0, 10);
+      return "";
+    }
+    const year = String(refIso || "2026").slice(0, 4) || "2026";
+    return year + "-" + pad2(m[1]) + "-" + pad2(m[2]);
+  }
+  function isoAddDays(iso, n) {
+    const d = new Date(iso + "T00:00:00");
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+  /** 最近 7 天（锚点=报告日或数据最新日），升序 */
+  function last7(list, dateOf, refIso) {
+    if (!list || !list.length) return [];
+    let maxIso = "";
+    list.forEach((it) => {
+      const iso = shortToIso(dateOf(it), refIso);
+      if (iso && (!maxIso || iso > maxIso)) maxIso = iso;
+    });
+    if (!maxIso) {
+      maxIso = shortToIso(refIso, refIso) || isoAddDays(new Date().toISOString().slice(0, 10), 0);
+    }
+    const cut = isoAddDays(maxIso, -(WINDOW_DAYS - 1));
+    const out = list.filter((it) => {
+      const iso = shortToIso(dateOf(it), refIso);
+      return iso && iso >= cut && iso <= maxIso;
+    });
+    out.sort((a, b) => {
+      const ia = shortToIso(dateOf(a), refIso);
+      const ib = shortToIso(dateOf(b), refIso);
+      return ia < ib ? -1 : ia > ib ? 1 : 0;
+    });
+    return out;
+  }
+
+  /** 趋势序列：优先 current.days 的当日运单总数（已按 7 天窗口） */
+  function trendSeries(cur, winDays) {
+    const list = (winDays || cur.days || []).map((d) => {
+      const iso = shortToIso(d.date, cur.reportDate);
+      return { date: iso, total: +d.total || 0 };
+    }).filter((x) => x.date);
+    list.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    if (list.length) return list;
+    return last7(db.history || [], (h) => h.date, cur.reportDate)
+      .slice()
+      .reverse()
+      .map((h) => ({ date: h.date, total: +h.total || 0 }));
+  }
   function snapshotFromCurrent(cur) {
     const s = sumDays(cur.days);
+    const short = shortDate(cur.reportDate);
+    const day = (cur.days || []).find((d) => d.date === short);
     return {
       date: cur.reportDate,
-      total: s.total,
-      tracked: s.tracked,
-      untracked: s.untracked,
-      draft: s.draft,
-      canceled: s.canceled,
+      total: day ? day.total : s.total,
+      tracked: day ? day.tracked : s.tracked,
+      untracked: day ? day.untracked : s.untracked,
+      draft: day ? day.draft : s.draft,
+      canceled: day ? day.canceled : s.canceled,
       balance: +cur.balance.current || 0,
       spent: spentOf(cur.balance)
     };
@@ -1125,27 +1184,36 @@ placeholder="日期: 2026-11-24
   /* ================= 渲染看板 ================= */
   function render() {
     const cur = db.current;
-    const sum = sumDays(cur.days);
-    const spent = spentOf(cur.balance);
+    const ref = cur.reportDate;
+    // 近 7 天窗口：物流 / 状态环 / 趋势 / 扣费 / 历史
+    const winDays = last7(cur.days || [], (d) => d.date, ref);
+    const sum = sumDays(winDays);
+    const winDeds = last7(cur.balance.deductions || [], (d) => d.date, ref);
+    const spent = spentOf({ deductions: winDeds });
     const trackRate = sum.total ? (sum.tracked / sum.total * 100) : 0;
+    const hist = last7(db.history || [], (h) => h.date, ref).slice().reverse(); // 最新在前，最多7条
 
     $("titleText").textContent = (db.title || "万国") + " · 运营日报";
-    $("subtitle").textContent = fmtDateCN(cur.reportDate) + " ｜ 物流揽收 · 账户余额 · 仓租进度";
-    $("footer").textContent = "数据截至 " + fmtDateCN(cur.reportDate) + " · 点右上角「录入今日数据」更新";
+    $("subtitle").textContent =
+      fmtDateCN(ref) + " ｜ 近" + WINDOW_DAYS + "天窗口 · 物流揽收 · 账户余额 · 仓租进度";
+    $("footer").textContent =
+      "仅统计近 " + WINDOW_DAYS + " 天 · 数据截至 " + fmtDateCN(ref) + " · 改飞书表后约10分钟自动更新";
 
-    const hist = db.history || [];
-    $("storageInfo").textContent =
-      "本机已存 " + hist.length + " 条历史 · 数据在浏览器 localStorage（可导出备份）";
+    if ($("storageInfo")) {
+      if (remoteOk) updateStorageInfo();
+      else $("storageInfo").textContent =
+        "近 " + WINDOW_DAYS + " 天窗口 · 本机数据（部署后自动读 data.json）";
+    }
 
     /* KPI */
     $("kpis").innerHTML = `
-      <div class="kpi"><div class="num">${sum.total}</div><div class="lbl">窗口运单</div></div>
+      <div class="kpi"><div class="num">${sum.total}</div><div class="lbl">近${WINDOW_DAYS}天运单</div></div>
       <div class="kpi"><div class="num ok">${sum.tracked}</div><div class="lbl">已有轨迹 ${trackRate.toFixed(0)}%</div></div>
       <div class="kpi"><div class="num warn">${sum.untracked}</div><div class="lbl">未有轨迹</div></div>
       <div class="kpi"><div class="num amber">${cur.balance.current}</div><div class="lbl">余额 ${cur.balance.currency}</div></div>`;
 
     /* Day rows */
-    $("dayRows").innerHTML = cur.days.map(d => {
+    $("dayRows").innerHTML = winDays.map(d => {
       const t = d.total || 1;
       const pct = n => ((+n || 0) / t * 100).toFixed(1) + "%";
       const segs = [];
@@ -1159,8 +1227,8 @@ placeholder="日期: 2026-11-24
         <div class="bar-track">${segs.join("")}</div>
         <div class="day-meta"><b>${d.total}</b> 单 · ${rate}% 轨迹</div>
       </div>`;
-    }).join("") || `<div class="hint">暂无运单数据</div>`;
-    $("logiBadge").textContent = cur.days.length + " 天窗口";
+    }).join("") || `<div class="hint">近${WINDOW_DAYS}天暂无运单数据</div>`;
+    $("logiBadge").textContent = "近" + WINDOW_DAYS + "天 · " + winDays.length + " 天有数";
     $("lgTrack").textContent = "有轨迹 " + sum.tracked;
     $("lgNone").textContent = "未轨迹 " + sum.untracked;
     $("lgDraft").textContent = "草稿待提交 " + sum.draft;
@@ -1194,10 +1262,10 @@ placeholder="日期: 2026-11-24
       </div>`;
     }).join("") || `<div class="hint">暂无数据</div>`;
 
-    /* Trend */
-    drawTrend((db.history || []).slice().reverse());
+    /* Trend: 当日运单量 = 近7天每天【运单总数】 */
+    drawTrend(trendSeries(cur, winDays));
 
-    /* Balance */
+    /* Balance：余额为当前快照；扣费瀑布仅近7天 */
     const b = cur.balance;
     $("balBadge").textContent = b.needRecharge ? "需要充值" : "无需充值";
     $("balBadge").className = "badge " + (b.needRecharge ? "red" : "green");
@@ -1208,9 +1276,9 @@ placeholder="日期: 2026-11-24
       </div>
       <div class="spent">
         <div class="n">−${spent} <span>${b.currency}</span></div>
-        <div class="t">出库扣费合计（${(b.deductions || []).length} 笔）</div>
+        <div class="t">近${WINDOW_DAYS}天出库扣费（${winDeds.length} 笔）</div>
       </div>`;
-    const deds = b.deductions || [];
+    const deds = winDeds;
     const maxDed = Math.max(...deds.map(d => d.amount), 1);
     $("waterfall").innerHTML = deds.map(d => `
       <div class="wf-col">
@@ -1244,8 +1312,8 @@ placeholder="日期: 2026-11-24
     pill.textContent = (r.status === "done" ? "✓ " : "⏳ ") + (r.statusText || "—");
     pill.className = "status-pill" + (r.status === "done" ? " done" : "");
 
-    /* History table */
-    $("histBadge").textContent = hist.length + " 条";
+    /* History table：仅近 7 天 */
+    $("histBadge").textContent = "近" + WINDOW_DAYS + "天 · " + hist.length + " 条";
     if (hist.length) {
       $("histTable").innerHTML = `
         <thead><tr>

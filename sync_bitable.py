@@ -184,6 +184,45 @@ def short_from_iso(iso: str) -> str:
     return f"{p[1]}.{p[2]}"
 
 
+WINDOW_DAYS = 7
+
+
+def short_to_date(short: str, year: int) -> datetime | None:
+    try:
+        m, d = short.split(".")
+        return datetime(year, int(m), int(d), tzinfo=TZ)
+    except Exception:
+        return None
+
+
+def iso_to_date(iso: str) -> datetime | None:
+    try:
+        return datetime.strptime(iso[:10], "%Y-%m-%d").replace(tzinfo=TZ)
+    except Exception:
+        return None
+
+
+def last_n_days(items: list, date_getter, n: int = WINDOW_DAYS, year: int | None = None) -> list:
+    """只保留最近 n 天（含端点）。date_getter 返回 datetime 或 None。"""
+    if not items:
+        return []
+    parsed = []
+    for it in items:
+        dt = date_getter(it)
+        if dt is not None:
+            parsed.append((dt, it))
+    if not parsed:
+        return list(items)
+    max_dt = max(p[0] for p in parsed)
+    if year is None:
+        year = max_dt.year
+    cutoff = datetime(max_dt.year, max_dt.month, max_dt.day, tzinfo=TZ) - timedelta(days=n - 1)
+    out = [it for dt, it in parsed if dt >= cutoff]
+    # 保持原相对顺序：按日期升序
+    out.sort(key=lambda it: date_getter(it) or cutoff)
+    return out
+
+
 def build_db(logistics, balances, rents, app_token: str) -> dict:
     # --- logistics days ---
     days = []
@@ -220,6 +259,14 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
             return (0, 0)
 
     days.sort(key=day_key)
+
+    # 7 天窗口：只保留最近 7 天物流
+    year_guess = datetime.now(tz=TZ).year
+    days = last_n_days(
+        days,
+        lambda d: short_to_date(d.get("date") or "", year_guess),
+        n=WINDOW_DAYS,
+    )
 
     # --- balance ---
     snapshots = []  # (iso, amount, currency, note, needRecharge)
@@ -282,6 +329,21 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
 
     snapshots.sort(key=lambda x: x[0] or "")
     deductions.sort(key=lambda x: (x.get("date") or ""))
+
+    # 扣费也只保留最近 7 天（锚点：物流最新日 或 扣费最新日）
+    anchor_short = days[-1]["date"] if days else (deductions[-1]["date"] if deductions else "")
+    if anchor_short:
+        year_a = datetime.now(tz=TZ).year
+        anchor_dt = short_to_date(anchor_short, year_a)
+        if anchor_dt:
+            cut = datetime(anchor_dt.year, anchor_dt.month, anchor_dt.day, tzinfo=TZ) - timedelta(
+                days=WINDOW_DAYS - 1
+            )
+            deductions = [
+                x
+                for x in deductions
+                if (short_to_date(x.get("date") or "", year_a) or cut) >= cut
+            ]
 
     if snapshots:
         latest = snapshots[-1]
@@ -363,28 +425,18 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
             ],
         }
 
-    # --- history cumulative ---
+    # --- history: 当日运单量 = 物流表该日「运单总数」，不做跨日累加 ---
     history = []
-    acc = {"total": 0, "tracked": 0, "untracked": 0, "draft": 0, "canceled": 0}
-    # map short date -> iso if possible
     for d in days:
-        acc = {
-            "total": acc["total"] + d["total"],
-            "tracked": acc["tracked"] + d["tracked"],
-            "untracked": acc["untracked"] + d["untracked"],
-            "draft": acc["draft"] + d["draft"],
-            "canceled": acc["canceled"] + d["canceled"],
-        }
         short = d["date"]
-        # spent: deductions with date <= short (string compare works MM.DD same year)
+        # spent: 截至该日的扣费累计（仅扣费列，不影响运单）
         spent = sum(x["amount"] for x in deductions if x["date"] and x["date"] <= short)
-        # balance: latest snapshot with short date <= short
+        # balance: 截至该日最近一次快照
         bal = balance_current
         for iso, amt, cur, note, need in snapshots:
             s = short_from_iso(iso) if iso else ""
             if s and s <= short:
                 bal = amt
-        # iso date for history
         try:
             mm, dd = short.split(".")
             iso_d = f"{datetime.now(tz=TZ).year}-{int(mm):02d}-{int(dd):02d}"
@@ -393,16 +445,19 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
         history.append(
             {
                 "date": iso_d,
-                "total": acc["total"],
-                "tracked": acc["tracked"],
-                "untracked": acc["untracked"],
-                "draft": acc["draft"],
-                "canceled": acc["canceled"],
+                # 与多维表【运单总数】一致：仅当天，不累计
+                "total": d["total"],
+                "tracked": d["tracked"],
+                "untracked": d["untracked"],
+                "draft": d["draft"],
+                "canceled": d["canceled"],
                 "balance": bal,
                 "spent": int(spent) if abs(spent - int(spent)) < 1e-6 else spent,
             }
         )
     history.reverse()
+    # 历史日报只保留最近 7 天
+    history = history[:WINDOW_DAYS]
 
     report_date = history[0]["date"] if history else datetime.now(tz=TZ).strftime("%Y-%m-%d")
 
