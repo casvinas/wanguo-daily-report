@@ -276,8 +276,42 @@
   .seg.none { background: #F09595; }
   .seg.draft { background: #EF9F27; }
   .seg.cancel { background: #5F5E5A; }
-  .day-meta { font-size: 11px; color: #5F5E5A; text-align: right; }
+  .day-meta { font-size: 11px; color: #5F5E5A; text-align: right; line-height: 1.45; }
   .day-meta b { color: #1F2329; font-weight: 600; font-size: 12px; }
+  .day-meta .tag-cancel {
+    display: inline-block;
+    background: #5F5E5A;
+    color: #fff;
+    border-radius: 4px;
+    padding: 0 5px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+    vertical-align: 1px;
+  }
+  .day-meta .tag-draft {
+    display: inline-block;
+    background: #EF9F27;
+    color: #fff;
+    border-radius: 4px;
+    padding: 0 5px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+    vertical-align: 1px;
+  }
+  .day-meta .tag-none {
+    display: inline-block;
+    background: #F09595;
+    color: #fff;
+    border-radius: 4px;
+    padding: 0 5px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+    vertical-align: 1px;
+  }
+  .seg.cancel { min-width: 14px; }
 
   .legend {
     display: flex;
@@ -1296,12 +1330,17 @@ placeholder="日期: 2026-11-24
       if (d.tracked > 0) segs.push(`<div class="seg track" style="width:${pct(d.tracked)}">${d.tracked} 有轨迹</div>`);
       if (d.untracked > 0) segs.push(`<div class="seg none" style="width:${pct(d.untracked)}">${d.untracked >= 8 ? d.untracked + " 未轨迹" : ""}</div>`);
       if (d.draft > 0) segs.push(`<div class="seg draft" style="width:${pct(d.draft)}" title="${d.draft} 草稿">${d.draft >= 8 ? d.draft + " 草稿" : ""}</div>`);
-      if (d.canceled > 0) segs.push(`<div class="seg cancel" style="width:${pct(d.canceled)}" title="${d.canceled} 取消"></div>`);
-      const rate = d.total ? Math.round(d.tracked / d.total * 100) : 0;
+      if (d.canceled > 0) segs.push(`<div class="seg cancel" style="width:${pct(d.canceled)};min-width:14px" title="${d.canceled} 取消"></div>`);
+      // 轨迹率：取消不计入「未轨迹」；在率后面标明取消/草稿/未轨迹笔数
+      const rate = d.total ? Math.round((d.tracked / d.total) * 100) : 0;
+      const tags = [];
+      if (d.untracked > 0) tags.push(`<span class="tag-none">未轨迹${d.untracked}</span>`);
+      if (d.draft > 0) tags.push(`<span class="tag-draft">草稿${d.draft}</span>`);
+      if (d.canceled > 0) tags.push(`<span class="tag-cancel">取消${d.canceled}</span>`);
       return `<div class="day-row">
         <div class="day-label">${d.date}</div>
         <div class="bar-track">${segs.join("")}</div>
-        <div class="day-meta"><b>${d.total}</b> 单 · ${rate}% 轨迹</div>
+        <div class="day-meta"><b>${d.total}</b> 单 · ${rate}% 轨迹${tags.join("")}</div>
       </div>`;
     }).join("") || `<div class="hint">近${WINDOW_DAYS}天暂无运单数据</div>`;
     $("logiBadge").textContent = "近" + WINDOW_DAYS + "天 · " + winDays.length + " 天有数";
@@ -1882,11 +1921,15 @@ placeholder="日期: 2026-11-24
       if(d.tracked>0) segs.push('<div class="seg track" style="width:'+pct(d.tracked)+'">'+d.tracked+' 有轨迹</div>');
       if(d.untracked>0) segs.push('<div class="seg none" style="width:'+pct(d.untracked)+'">'+(d.untracked>=8?d.untracked+" 未轨迹":"")+'</div>');
       if(d.draft>0) segs.push('<div class="seg draft" style="width:'+pct(d.draft)+'">'+(d.draft>=8?d.draft+" 草稿":"")+'</div>');
-      if(d.canceled>0) segs.push('<div class="seg cancel" style="width:'+pct(d.canceled)+'"></div>');
+      if(d.canceled>0) segs.push('<div class="seg cancel" style="width:'+pct(d.canceled)+';min-width:14px"></div>');
       var rate = d.total ? Math.round(d.tracked/d.total*100) : 0;
+      var tags = '';
+      if(d.untracked>0) tags += '<span class="tag-none">未轨迹'+d.untracked+'</span>';
+      if(d.draft>0) tags += '<span class="tag-draft">草稿'+d.draft+'</span>';
+      if(d.canceled>0) tags += '<span class="tag-cancel">取消'+d.canceled+'</span>';
       return '<div class="day-row"><div class="day-label">'+esc(d.date)+'</div>'+
         '<div class="bar-track">'+segs.join("")+'</div>'+
-        '<div class="day-meta"><b>'+d.total+'</b> 单 · '+rate+'% 轨迹</div></div>';
+        '<div class="day-meta"><b>'+d.total+'</b> 单 · '+rate+'% 轨迹'+tags+'</div></div>';
     }).join("");
   }
   var lb = $("logiBadge"); if(lb) lb.textContent = (cur.days||[]).length+" 天窗口";
