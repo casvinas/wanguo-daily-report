@@ -333,6 +333,70 @@
   .bal-top .spent .n span { font-size: 12px; font-weight: 500; color: #5F5E5A; }
   .bal-top .spent .t { font-size: 12px; color: #5F5E5A; margin-top: 2px; }
 
+  /* 三项费用：出库 / 仓租 / 当日合计 */
+  .fee-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0 8px;
+  }
+  .fee-stat {
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 1px solid #E8EAED;
+    background: #FAFAFA;
+  }
+  .fee-stat .n { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .fee-stat .t { font-size: 11px; color: #5F5E5A; margin-top: 4px; }
+  .fee-stat.out { background: #FCEBEB; border-color: #F09595; }
+  .fee-stat.out .n { color: #A32D2D; }
+  .fee-stat.rent { background: #FAEEDA; border-color: #EF9F27; }
+  .fee-stat.rent .n { color: #854F0B; }
+  .fee-stat.sum { background: #E6F1FB; border-color: #85B7EB; }
+  .fee-stat.sum .n { color: #185FA5; }
+
+  .fee-daily { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .fee-daily th {
+    text-align: left;
+    font-weight: 500;
+    color: #5F5E5A;
+    padding: 6px 8px;
+    background: #F1EFE8;
+    border-bottom: 1px solid #E8EAED;
+  }
+  .fee-daily th:not(:first-child),
+  .fee-daily td:not(:first-child) { text-align: right; }
+  .fee-daily td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #F5F5F3;
+    color: #444441;
+  }
+  .fee-daily tr.total-row td {
+    font-weight: 700;
+    background: #E6F1FB;
+    color: #0C447C;
+    border-top: 2px solid #85B7EB;
+  }
+  .fee-daily .c-out { color: #A32D2D; }
+  .fee-daily .c-rent { color: #854F0B; }
+  .fee-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: #5F5E5A;
+    margin-top: 6px;
+  }
+  .fee-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: -1px;
+  }
+
   .waterfall { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 4px; }
   .wf-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
   .wf-val { font-size: 11px; font-weight: 600; color: #A32D2D; margin-bottom: 4px; }
@@ -740,7 +804,15 @@ placeholder="日期: 2026-11-24
     <div class="card">
       <h2>② 账户余额 <span class="badge green" id="balBadge">—</span></h2>
       <div class="bal-top" id="balTop"></div>
+      <div class="fee-stats" id="feeStats"></div>
+      <div class="fee-legend">
+        <span><i style="background:#F09595"></i>出库扣费</span>
+        <span><i style="background:#EF9F27"></i>仓租费用</span>
+        <span><i style="background:#85B7EB"></i>当日合计 = 出库 + 仓租</span>
+      </div>
+      <div id="feeDailyWrap"></div>
       <div class="waterfall" id="waterfall"></div>
+      <div id="rentFeeBox" style="display:none;margin-top:10px"></div>
       <div class="note ok" id="balNote"></div>
     </div>
 
@@ -841,7 +913,7 @@ placeholder="日期: 2026-11-24
         current: {
           reportDate: data.reportDate,
           days: data.days,
-          balance: data.balance || { currency: "MXN", current: 0, needRecharge: false, note: "", deductions: [] },
+          balance: data.balance || { currency: "MXN", current: 0, needRecharge: false, note: "", deductions: [], rentFees: [] },
           rent: data.rent || { startDate: "", planLabel: "", totalCost: 0, status: "pending", statusText: "", timeline: [] }
         },
         history: Array.isArray(data.history) ? data.history : []
@@ -1265,8 +1337,36 @@ placeholder="日期: 2026-11-24
     /* Trend: 当日运单量 = 近7天每天【运单总数】 */
     drawTrend(trendSeries(cur, winDays));
 
-    /* Balance：余额为当前快照；扣费瀑布仅近7天 */
+    /* Balance：余额快照 + 出库 / 仓租 / 当日合计（近7天，三项齐全） */
     const b = cur.balance;
+    const winRent = last7(b.rentFees || [], (d) => d.date, ref);
+    const rentSpent = spentOf({ deductions: winRent });
+    const outSpent = spent; // 近7天出库
+    const totalSpend = outSpent + rentSpent;
+
+    // 按日汇总：日期 → { out, rent, total }
+    const feeByDate = new Map();
+    const ensureDay = (date) => {
+      if (!date) return null;
+      if (!feeByDate.has(date)) feeByDate.set(date, { date, out: 0, rent: 0, total: 0 });
+      return feeByDate.get(date);
+    };
+    winDeds.forEach((d) => {
+      const row = ensureDay(d.date);
+      if (row) row.out += +d.amount || 0;
+    });
+    winRent.forEach((d) => {
+      const row = ensureDay(d.date);
+      if (row) row.rent += +d.amount || 0;
+    });
+    // 并入近7天物流日（无费用也显示 0）
+    winDays.forEach((d) => ensureDay(d.date));
+    const feeRows = Array.from(feeByDate.values())
+      .map((r) => ({ ...r, total: r.out + r.rent }))
+      .sort((a, c) => (a.date < c.date ? -1 : a.date > c.date ? 1 : 0));
+    // 只显示有费用的天 + 保证合计行正确；若全为0仍显示表头
+    const feeRowsVisible = feeRows.filter((r) => r.out || r.rent);
+
     $("balBadge").textContent = b.needRecharge ? "需要充值" : "无需充值";
     $("balBadge").className = "badge " + (b.needRecharge ? "red" : "green");
     $("balTop").innerHTML = `
@@ -1275,26 +1375,103 @@ placeholder="日期: 2026-11-24
         <div class="t">当前账户余额</div>
       </div>
       <div class="spent">
-        <div class="n">−${spent} <span>${b.currency}</span></div>
-        <div class="t">近${WINDOW_DAYS}天出库扣费（${winDeds.length} 笔）</div>
+        <div class="n">−${totalSpend} <span>${b.currency}</span></div>
+        <div class="t">近${WINDOW_DAYS}天费用合计</div>
       </div>`;
-    const deds = winDeds;
-    const maxDed = Math.max(...deds.map(d => d.amount), 1);
-    $("waterfall").innerHTML = deds.map(d => `
+
+    // 三项汇总卡片
+    $("feeStats").innerHTML = `
+      <div class="fee-stat out">
+        <div class="n">−${outSpent}</div>
+        <div class="t">出库扣费（近${WINDOW_DAYS}天）</div>
+      </div>
+      <div class="fee-stat rent">
+        <div class="n">−${rentSpent}</div>
+        <div class="t">仓租费用（近${WINDOW_DAYS}天）</div>
+      </div>
+      <div class="fee-stat sum">
+        <div class="n">−${totalSpend}</div>
+        <div class="t">费用合计（出库+仓租）</div>
+      </div>`;
+
+    // 每日费用表：出库 | 仓租 | 当日合计
+    if (feeRowsVisible.length) {
+      $("feeDailyWrap").innerHTML = `
+        <table class="fee-daily">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>出库</th>
+              <th>仓租</th>
+              <th>当日合计</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${feeRowsVisible.map((r) => `
+              <tr>
+                <td>${r.date}</td>
+                <td class="c-out">${r.out ? "−" + r.out : "—"}</td>
+                <td class="c-rent">${r.rent ? "−" + r.rent : "—"}</td>
+                <td><b>−${r.total}</b></td>
+              </tr>`).join("")}
+            <tr class="total-row">
+              <td>近${WINDOW_DAYS}天合计</td>
+              <td class="c-out">−${outSpent}</td>
+              <td class="c-rent">−${rentSpent}</td>
+              <td>−${totalSpend}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    } else {
+      $("feeDailyWrap").innerHTML =
+        `<div class="hint" style="margin-top:8px">近${WINDOW_DAYS}天暂无出库/仓租费用记录</div>`;
+    }
+
+    // 瀑布：按日堆叠出库+仓租，再画合计柱
+    const maxDay = Math.max(...feeRowsVisible.map((r) => r.total), 1);
+    $("waterfall").innerHTML = feeRowsVisible.map((r) => {
+      const outH = r.out ? Math.max(4, (r.out / maxDay) * 100) : 0;
+      const rentH = r.rent ? Math.max(4, (r.rent / maxDay) * 100) : 0;
+      // 用两段堆叠（仓租在上、出库在下）
+      return `
       <div class="wf-col">
-        <div class="wf-val">−${d.amount}</div>
-        <div class="wf-bar" style="height:${(d.amount / maxDed * 100).toFixed(0)}%"></div>
-        <div class="wf-lbl">${d.date}</div>
-      </div>`).join("") + `
+        <div class="wf-val">−${r.total}</div>
+        <div style="width:100%;max-width:56px;display:flex;flex-direction:column;justify-content:flex-end;height:${Math.max(outH + rentH, 4)}%">
+          ${r.rent ? `<div style="height:${(r.rent / r.total * 100).toFixed(1)}%;background:#EF9F27;border-radius:4px 4px 0 0;min-height:4px"></div>` : ""}
+          ${r.out ? `<div style="height:${(r.out / r.total * 100).toFixed(1)}%;background:#F09595;${!r.rent ? "border-radius:4px 4px 0 0;" : ""}min-height:4px"></div>` : ""}
+        </div>
+        <div class="wf-lbl">${r.date}<br><span style="font-size:10px">出${r.out}/租${r.rent}</span></div>
+      </div>`;
+    }).join("") + `
       <div class="wf-col">
-        <div class="wf-val">−${spent}</div>
-        <div class="wf-bar sum" style="height:${Math.min(spent / maxDed * 100, 100).toFixed(0)}%"></div>
+        <div class="wf-val">−${totalSpend}</div>
+        <div class="wf-bar sum" style="height:${Math.min((totalSpend / maxDay) * 100, 100).toFixed(0)}%"></div>
         <div class="wf-lbl total">合计</div>
       </div>`;
+
+    const rentBox = $("rentFeeBox");
+    if (rentBox) {
+      if (winRent.length || winDeds.length) {
+        rentBox.style.display = "block";
+        rentBox.innerHTML = `
+          <div style="background:#F8FAFC;border:1px solid #E8EAED;border-radius:8px;padding:8px 12px;font-size:12px;color:#444441;line-height:1.7">
+            <b>出库</b> −${outSpent} ${b.currency}（${winDeds.length} 笔）
+            · <b>仓租</b> −${rentSpent} ${b.currency}（${winRent.length} 笔）
+            · <b>合计</b> −${totalSpend} ${b.currency}
+            ${winRent.length ? `<br>仓租明细：${winRent.map((x) => x.date + " " + x.amount).join("，")}` : ""}
+          </div>`;
+      } else {
+        rentBox.style.display = "none";
+        rentBox.innerHTML = "";
+      }
+    }
+
     const noteEl = $("balNote");
     noteEl.className = "note " + (b.needRecharge ? "warn" : "ok");
-    noteEl.textContent = (b.needRecharge ? "⚠ " : "✓ ") +
-      (b.note || (b.needRecharge ? "请尽快充值" : "余额充足"));
+    noteEl.textContent =
+      (b.needRecharge ? "⚠ " : "✓ ") +
+      (b.note || (b.needRecharge ? "请尽快充值" : "余额充足")) +
+      ` · 近${WINDOW_DAYS}天：出库 −${outSpent} + 仓租 −${rentSpent} = 合计 −${totalSpend} ${b.currency}`;
 
     /* Rent */
     const r = cur.rent;

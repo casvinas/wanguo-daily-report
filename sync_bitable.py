@@ -269,8 +269,10 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
     )
 
     # --- balance ---
+    # 类型：余额快照 / 出库扣费 / 仓租费用（多维表「类型」字段）
     snapshots = []  # (iso, amount, currency, note, needRecharge)
-    deductions = []
+    deductions = []  # 出库扣费
+    rent_fees = []  # 仓租费用
     for rec in balances:
         f = rec.get("fields") or {}
         typ = field_text(f.get("类型"))
@@ -279,59 +281,36 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
         cur = field_text(f.get("货币")) or "MXN"
         note = field_text(f.get("备注"))
         need = bool(f.get("需要充值"))
-        if "扣费" in typ or (typ == "" and amount):
-            # type 出库扣费
-            if "扣费" in typ or typ == "出库扣费":
-                deductions.append({"date": short_from_iso(iso) or parse_date_short(f.get("日期")), "amount": amount})
-            elif "余额" in typ or typ == "余额快照":
-                snapshots.append((iso, amount, cur, note, need))
-            else:
-                # fallback by name
-                if "快照" in typ or "余额" in typ:
-                    snapshots.append((iso, amount, cur, note, need))
-                else:
-                    deductions.append({"date": short_from_iso(iso), "amount": amount})
-        elif "余额" in typ or typ == "余额快照":
-            snapshots.append((iso, amount, cur, note, need))
-        elif "扣费" in typ:
-            deductions.append({"date": short_from_iso(iso) or parse_date_short(f.get("日期")), "amount": amount})
-        else:
-            # unknown: if 需要充值 or looks like balance snapshot default
-            if need or "快照" in typ:
-                snapshots.append((iso, amount, cur, note, need))
-            else:
-                deductions.append({"date": short_from_iso(iso), "amount": amount})
-
-    # re-classify more carefully
-    snapshots = []
-    deductions = []
-    for rec in balances:
-        f = rec.get("fields") or {}
-        typ = field_text(f.get("类型"))
-        amount = field_num(f.get("金额"))
-        iso = parse_date_iso(f.get("日期"))
         short = short_from_iso(iso) if iso else parse_date_short(f.get("日期"))
-        cur = field_text(f.get("货币")) or "MXN"
-        note = field_text(f.get("备注"))
-        need = bool(f.get("需要充值"))
-        if "扣费" in typ:
+        if "仓租" in typ:
+            rent_fees.append({"date": short, "amount": amount, "note": note})
+        elif "扣费" in typ:
             deductions.append({"date": short, "amount": amount})
-        else:
-            # 余额快照 / empty type with amount treated as snapshot if 备注 or default
-            if typ == "" and not note and not need:
-                # ambiguous: prefer snapshot only if no 出库 keyword
+        elif "快照" in typ or "余额" in typ:
+            snapshots.append((iso, amount, cur, note, need))
+        elif typ == "" and not need:
+            # 无类型：有备注「加了仓租」等仍作快照较危险；默认当快照仅当备注像余额
+            if "余额" in note or note in ("", "当前账户余额"):
                 snapshots.append((iso, amount, cur, note, need))
             else:
-                snapshots.append((iso, amount, cur, note, need))
-
-    # Fix: 出库扣费 already handled. For empty type rows that are deductions - check amount patterns
-    # Re-read: user table uses 类型 SingleSelect 余额快照/出库扣费 - good.
+                deductions.append({"date": short, "amount": amount})
+        else:
+            snapshots.append((iso, amount, cur, note, need))
 
     snapshots.sort(key=lambda x: x[0] or "")
     deductions.sort(key=lambda x: (x.get("date") or ""))
+    rent_fees.sort(key=lambda x: (x.get("date") or ""))
 
-    # 扣费也只保留最近 7 天（锚点：物流最新日 或 扣费最新日）
-    anchor_short = days[-1]["date"] if days else (deductions[-1]["date"] if deductions else "")
+    # 7 天窗口锚点：物流最新日 或 任一费用最新日
+    def _max_short(*lists_dates):
+        cand = [d for d in lists_dates if d]
+        return max(cand) if cand else ""
+
+    anchor_short = _max_short(
+        days[-1]["date"] if days else "",
+        deductions[-1]["date"] if deductions else "",
+        rent_fees[-1]["date"] if rent_fees else "",
+    )
     if anchor_short:
         year_a = datetime.now(tz=TZ).year
         anchor_dt = short_to_date(anchor_short, year_a)
@@ -339,11 +318,13 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
             cut = datetime(anchor_dt.year, anchor_dt.month, anchor_dt.day, tzinfo=TZ) - timedelta(
                 days=WINDOW_DAYS - 1
             )
-            deductions = [
-                x
-                for x in deductions
-                if (short_to_date(x.get("date") or "", year_a) or cut) >= cut
-            ]
+
+            def _in7(item):
+                dt = short_to_date(item.get("date") or "", year_a)
+                return dt is not None and dt >= cut
+
+            deductions = [x for x in deductions if _in7(x)]
+            rent_fees = [x for x in rent_fees if _in7(x)]
 
     if snapshots:
         latest = snapshots[-1]
@@ -357,16 +338,19 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
         note = "暂无余额快照"
         need_recharge = True
 
-    # dedupe deductions by (date, amount)
-    seen = set()
-    uniq_ded = []
-    for d in deductions:
-        key = (d["date"], d["amount"])
-        if key in seen:
-            continue
-        seen.add(key)
-        uniq_ded.append(d)
-    deductions = uniq_ded
+    def _dedupe(items):
+        seen = set()
+        out = []
+        for d in items:
+            key = (d.get("date"), d.get("amount"))
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(d)
+        return out
+
+    deductions = _dedupe(deductions)
+    rent_fees = _dedupe(rent_fees)
 
     balance = {
         "currency": currency,
@@ -374,6 +358,7 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
         "needRecharge": need_recharge,
         "note": note,
         "deductions": deductions,
+        "rentFees": rent_fees,
     }
 
     # --- rent: prefer 是否当前有效=true ---
@@ -431,6 +416,7 @@ def build_db(logistics, balances, rents, app_token: str) -> dict:
         short = d["date"]
         # spent: 截至该日的扣费累计（仅扣费列，不影响运单）
         spent = sum(x["amount"] for x in deductions if x["date"] and x["date"] <= short)
+        spent += sum(x["amount"] for x in rent_fees if x["date"] and x["date"] <= short)
         # balance: 截至该日最近一次快照
         bal = balance_current
         for iso, amt, cur, note, need in snapshots:
