@@ -54,8 +54,8 @@
       {
         "date": "11.26",
         "total": 7,
-        "tracked": 7,
-        "untracked": 0,
+        "tracked": 0,
+        "untracked": 7,
         "draft": 0,
         "canceled": 0
       }
@@ -122,8 +122,8 @@
     {
       "date": "2026-11-26",
       "total": 7,
-      "tracked": 7,
-      "untracked": 0,
+      "tracked": 0,
+      "untracked": 7,
       "draft": 0,
       "canceled": 0,
       "balance": 11096.0,
@@ -193,7 +193,7 @@
   "_meta": {
     "source": "feishu_bitable_auto",
     "app_token": "RoylbRWOxagG31snQJQcJ2LLnke",
-    "synced_at": "2026-11-26 09:50:27+0800",
+    "synced_at": "2026-11-26 09:53:19+0800",
     "days_count": 7,
     "deduction_count": 7
   }
