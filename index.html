@@ -991,6 +991,10 @@ placeholder="日期: 2026-11-24
   function spentOf(bal) {
     return (bal.deductions || []).reduce((s, x) => s + (+x.amount || 0), 0);
   }
+  function fmtMoney(n) {
+    const v = Math.round((+n || 0) * 100) / 100;
+    return Number.isInteger(v) ? String(v) : v.toFixed(2);
+  }
 
   const WINDOW_DAYS = 7;
 
@@ -1371,26 +1375,26 @@ placeholder="日期: 2026-11-24
     $("balBadge").className = "badge " + (b.needRecharge ? "red" : "green");
     $("balTop").innerHTML = `
       <div class="balance">
-        <div class="n">${b.current} <span>${b.currency}</span></div>
+        <div class="n">${fmtMoney(b.current)} <span>${b.currency}</span></div>
         <div class="t">当前账户余额</div>
       </div>
       <div class="spent">
-        <div class="n">−${totalSpend} <span>${b.currency}</span></div>
+        <div class="n">−${fmtMoney(totalSpend)} <span>${b.currency}</span></div>
         <div class="t">近${WINDOW_DAYS}天费用合计</div>
       </div>`;
 
     // 三项汇总卡片
     $("feeStats").innerHTML = `
       <div class="fee-stat out">
-        <div class="n">−${outSpent}</div>
+        <div class="n">−${fmtMoney(outSpent)}</div>
         <div class="t">出库扣费（近${WINDOW_DAYS}天）</div>
       </div>
       <div class="fee-stat rent">
-        <div class="n">−${rentSpent}</div>
+        <div class="n">−${fmtMoney(rentSpent)}</div>
         <div class="t">仓租费用（近${WINDOW_DAYS}天）</div>
       </div>
       <div class="fee-stat sum">
-        <div class="n">−${totalSpend}</div>
+        <div class="n">−${fmtMoney(totalSpend)}</div>
         <div class="t">费用合计（出库+仓租）</div>
       </div>`;
 
@@ -1410,15 +1414,15 @@ placeholder="日期: 2026-11-24
             ${feeRowsVisible.map((r) => `
               <tr>
                 <td>${r.date}</td>
-                <td class="c-out">${r.out ? "−" + r.out : "—"}</td>
-                <td class="c-rent">${r.rent ? "−" + r.rent : "—"}</td>
-                <td><b>−${r.total}</b></td>
+                <td class="c-out">${r.out ? "−" + fmtMoney(r.out) : "—"}</td>
+                <td class="c-rent">${r.rent ? "−" + fmtMoney(r.rent) : "—"}</td>
+                <td><b>−${fmtMoney(r.total)}</b></td>
               </tr>`).join("")}
             <tr class="total-row">
               <td>近${WINDOW_DAYS}天合计</td>
-              <td class="c-out">−${outSpent}</td>
-              <td class="c-rent">−${rentSpent}</td>
-              <td>−${totalSpend}</td>
+              <td class="c-out">−${fmtMoney(outSpent)}</td>
+              <td class="c-rent">−${fmtMoney(rentSpent)}</td>
+              <td>−${fmtMoney(totalSpend)}</td>
             </tr>
           </tbody>
         </table>`;
@@ -1432,33 +1436,42 @@ placeholder="日期: 2026-11-24
     $("waterfall").innerHTML = feeRowsVisible.map((r) => {
       const outH = r.out ? Math.max(4, (r.out / maxDay) * 100) : 0;
       const rentH = r.rent ? Math.max(4, (r.rent / maxDay) * 100) : 0;
-      // 用两段堆叠（仓租在上、出库在下）
       return `
       <div class="wf-col">
-        <div class="wf-val">−${r.total}</div>
+        <div class="wf-val">−${fmtMoney(r.total)}</div>
         <div style="width:100%;max-width:56px;display:flex;flex-direction:column;justify-content:flex-end;height:${Math.max(outH + rentH, 4)}%">
           ${r.rent ? `<div style="height:${(r.rent / r.total * 100).toFixed(1)}%;background:#EF9F27;border-radius:4px 4px 0 0;min-height:4px"></div>` : ""}
           ${r.out ? `<div style="height:${(r.out / r.total * 100).toFixed(1)}%;background:#F09595;${!r.rent ? "border-radius:4px 4px 0 0;" : ""}min-height:4px"></div>` : ""}
         </div>
-        <div class="wf-lbl">${r.date}<br><span style="font-size:10px">出${r.out}/租${r.rent}</span></div>
+        <div class="wf-lbl">${r.date}<br><span style="font-size:10px">出${fmtMoney(r.out)}/租${fmtMoney(r.rent)}</span></div>
       </div>`;
     }).join("") + `
       <div class="wf-col">
-        <div class="wf-val">−${totalSpend}</div>
+        <div class="wf-val">−${fmtMoney(totalSpend)}</div>
         <div class="wf-bar sum" style="height:${Math.min((totalSpend / maxDay) * 100, 100).toFixed(0)}%"></div>
         <div class="wf-lbl total">合计</div>
       </div>`;
 
     const rentBox = $("rentFeeBox");
     if (rentBox) {
-      if (winRent.length || winDeds.length) {
+      // 提示：若 rentFees 字段缺失，说明 data.json 仍由旧脚本生成
+      const hasRentKey = !!(b.rentFees && b.rentFees.length);
+      const noRentKey = b.rentFees === undefined;
+      if (noRentKey) {
+        rentBox.style.display = "block";
+        rentBox.innerHTML = `
+          <div style="background:#FCEBEB;border:1px solid #F09595;border-radius:8px;padding:8px 12px;font-size:12px;color:#791F1F">
+            ⚠ data.json 里没有 <b>rentFees</b> 字段：GitHub 上的 <code>sync_bitable.py</code> 可能还是旧版。
+            请上传最新脚本后重新 Run workflow。
+          </div>`;
+      } else if (winRent.length || winDeds.length) {
         rentBox.style.display = "block";
         rentBox.innerHTML = `
           <div style="background:#F8FAFC;border:1px solid #E8EAED;border-radius:8px;padding:8px 12px;font-size:12px;color:#444441;line-height:1.7">
-            <b>出库</b> −${outSpent} ${b.currency}（${winDeds.length} 笔）
-            · <b>仓租</b> −${rentSpent} ${b.currency}（${winRent.length} 笔）
-            · <b>合计</b> −${totalSpend} ${b.currency}
-            ${winRent.length ? `<br>仓租明细：${winRent.map((x) => x.date + " " + x.amount).join("，")}` : ""}
+            <b>出库</b> −${fmtMoney(outSpent)} ${b.currency}（${winDeds.length} 笔）
+            · <b>仓租</b> −${fmtMoney(rentSpent)} ${b.currency}（${winRent.length} 笔）
+            · <b>合计</b> −${fmtMoney(totalSpend)} ${b.currency}
+            ${winRent.length ? `<br>仓租明细：${winRent.map((x) => x.date + " " + fmtMoney(x.amount)).join("，")}` : ""}
           </div>`;
       } else {
         rentBox.style.display = "none";
@@ -1471,7 +1484,7 @@ placeholder="日期: 2026-11-24
     noteEl.textContent =
       (b.needRecharge ? "⚠ " : "✓ ") +
       (b.note || (b.needRecharge ? "请尽快充值" : "余额充足")) +
-      ` · 近${WINDOW_DAYS}天：出库 −${outSpent} + 仓租 −${rentSpent} = 合计 −${totalSpend} ${b.currency}`;
+      ` · 近${WINDOW_DAYS}天：出库 −${fmtMoney(outSpent)} + 仓租 −${fmtMoney(rentSpent)} = 合计 −${fmtMoney(totalSpend)} ${b.currency}`;
 
     /* Rent */
     const r = cur.rent;
