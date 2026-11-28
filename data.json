@@ -1,16 +1,8 @@
 {
   "title": "万国一件代发",
   "current": {
-    "reportDate": "2026-11-27",
+    "reportDate": "2026-11-28",
     "days": [
-      {
-        "date": "11.21",
-        "total": 22,
-        "tracked": 22,
-        "untracked": 0,
-        "draft": 0,
-        "canceled": 0
-      },
       {
         "date": "11.22",
         "total": 55,
@@ -53,23 +45,27 @@
       },
       {
         "date": "11.27",
-        "total": 11,
+        "total": 16,
+        "tracked": 16,
+        "untracked": 0,
+        "draft": 0,
+        "canceled": 0
+      },
+      {
+        "date": "11.28",
+        "total": 6,
         "tracked": 0,
-        "untracked": 11,
+        "untracked": 6,
         "draft": 0,
         "canceled": 0
       }
     ],
     "balance": {
       "currency": "MXN",
-      "current": 10115.0,
+      "current": 9873.0,
       "needRecharge": false,
       "note": "余额充足",
       "deductions": [
-        {
-          "date": "11.21",
-          "amount": 204.0
-        },
         {
           "date": "11.22",
           "amount": 212.0
@@ -93,6 +89,10 @@
         {
           "date": "11.27",
           "amount": 190.0
+        },
+        {
+          "date": "11.28",
+          "amount": 242.0
         }
       ],
       "rentFees": [
@@ -147,14 +147,24 @@
   },
   "history": [
     {
-      "date": "2026-11-27",
-      "total": 11,
+      "date": "2026-11-28",
+      "total": 6,
       "tracked": 0,
-      "untracked": 11,
+      "untracked": 6,
+      "draft": 0,
+      "canceled": 0,
+      "balance": 9873.0,
+      "spent": 6133.5903
+    },
+    {
+      "date": "2026-11-27",
+      "total": 16,
+      "tracked": 16,
+      "untracked": 0,
       "draft": 0,
       "canceled": 0,
       "balance": 10115.0,
-      "spent": 6095.5903
+      "spent": 5891.5903
     },
     {
       "date": "2026-11-26",
@@ -164,7 +174,7 @@
       "draft": 0,
       "canceled": 0,
       "balance": 11096.0,
-      "spent": 5510.5202
+      "spent": 5306.5202
     },
     {
       "date": "2026-11-25",
@@ -174,7 +184,7 @@
       "draft": 0,
       "canceled": 0,
       "balance": 11948.0,
-      "spent": 4930.6293000000005
+      "spent": 4726.6293000000005
     },
     {
       "date": "2026-11-24",
@@ -184,7 +194,7 @@
       "draft": 0,
       "canceled": 0,
       "balance": 12726.0,
-      "spent": 3944.9262
+      "spent": 3740.9262
     },
     {
       "date": "2026-11-23",
@@ -194,7 +204,7 @@
       "draft": 0,
       "canceled": 0,
       "balance": 4588.0,
-      "spent": 866.5377
+      "spent": 662.5377
     },
     {
       "date": "2026-11-22",
@@ -203,24 +213,14 @@
       "untracked": 0,
       "draft": 0,
       "canceled": 1,
-      "balance": 10115.0,
-      "spent": 416
-    },
-    {
-      "date": "2026-11-21",
-      "total": 22,
-      "tracked": 22,
-      "untracked": 0,
-      "draft": 0,
-      "canceled": 0,
-      "balance": 10115.0,
-      "spent": 204
+      "balance": 9873.0,
+      "spent": 212
     }
   ],
   "_meta": {
     "source": "feishu_bitable_auto",
     "app_token": "RoylbRWOxagG31snQJQcJ2LLnke",
-    "synced_at": "2026-11-28 04:11:23+0800",
+    "synced_at": "2026-11-28 09:26:27+0800",
     "days_count": 7,
     "deduction_count": 7
   }
